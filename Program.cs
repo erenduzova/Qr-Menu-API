@@ -1,4 +1,10 @@
 
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Qr_Menu_API.Data;
+using Qr_Menu_API.Models;
+using Qr_Menu_API.Services;
+
 namespace Qr_Menu_API
 {
     public class Program
@@ -13,6 +19,13 @@ namespace Qr_Menu_API
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationContext")));
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationContext>();
+            builder.Services.AddScoped<CompaniesService>();
+            builder.Services.AddScoped<RestaurantsService>();
+            builder.Services.AddScoped<CategoriesService>();
 
             var app = builder.Build();
 
