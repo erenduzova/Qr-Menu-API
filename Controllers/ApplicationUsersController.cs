@@ -3,69 +3,71 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Qr_Menu_API.Data;
+using Qr_Menu_API.DTOs.CreateDTOs;
+using Qr_Menu_API.DTOs.ResponseDTOs;
 using Qr_Menu_API.Models;
+using Qr_Menu_API.Services;
 
 namespace Qr_Menu_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class ApplicationUsersController : ControllerBase
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ApplicationUsersService _applicationUsersService;
 
-        public UsersController(SignInManager<ApplicationUser> signInManager)
+        public ApplicationUsersController(SignInManager<ApplicationUser> signInManager, ApplicationUsersService applicationUsersService)
         {
             _signInManager = signInManager;
+            _applicationUsersService = applicationUsersService;
         }
 
         // GET: api/Users
         [HttpGet]
-        public ActionResult<List<ApplicationUser>> GetUsers()
+        public ActionResult<List<ApplicationUserResponse>> GetUsers()
         {
             if (_signInManager.UserManager.Users == null)
             {
                 return NotFound();
             }
-            return _signInManager.UserManager.Users.ToList();
+            return _applicationUsersService.GetApplicationUserResponses();
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public ActionResult<ApplicationUser> GetApplicationUser(string id)
+        public ActionResult<ApplicationUserResponse> GetApplicationUser(string id)
         {
+            if (_signInManager.UserManager.Users == null)
+            {
+                return NotFound();
+            }
             ApplicationUser? applicationUser = _signInManager.UserManager.FindByIdAsync(id).Result;
             if (applicationUser == null)
             {
                 return NotFound();
             }
-            return applicationUser;
+            return _applicationUsersService.GetApplicationUserResponse(applicationUser);
         }
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        public ActionResult PutApplicationUser(ApplicationUser applicationUser)
+        public ActionResult<ApplicationUserResponse> PutApplicationUser(string id, ApplicationUserCreate updatedApplicationUser)
         {
-            ApplicationUser? existingApplicationUser = _signInManager.UserManager.FindByIdAsync(applicationUser.Id).Result;
-            if (applicationUser == null)
+            ApplicationUser? existingApplicationUser = _signInManager.UserManager.FindByIdAsync(id).Result;
+            if (existingApplicationUser == null)
             {
                 return NotFound();
             }
-            existingApplicationUser.UserName = applicationUser.UserName;
-            existingApplicationUser.Email = applicationUser.Email;
-            existingApplicationUser.Name = applicationUser.Name;
-            existingApplicationUser.PhoneNumber = applicationUser.PhoneNumber;
-
-            _signInManager.UserManager.UpdateAsync(existingApplicationUser).Wait();
-
-            return Ok();
+            
+            return _applicationUsersService.UpdateApplicationUser(existingApplicationUser, updatedApplicationUser);
         }
 
         // POST: api/Users
         [HttpPost]
-        public string PostApplicationUser(ApplicationUser applicationUser, string password)
+        public string PostApplicationUser(ApplicationUserCreate applicationUserCreate, string password)
         {
-            _signInManager.UserManager.CreateAsync(applicationUser, password).Wait();
-            return applicationUser.Id;
+            return _applicationUsersService.CreateApplicationUser(applicationUserCreate, password);
         }
 
         // DELETE: api/Users/5
@@ -77,8 +79,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound();
             }
-            applicationUser.StateId = 0;
-            _signInManager.UserManager.UpdateAsync(applicationUser).Wait();
+            _applicationUsersService.DeleteApplicationUserAndRelatedEntities(applicationUser);
             return Ok();
         }
 
@@ -91,7 +92,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound();
             }
-            Microsoft.AspNetCore.Identity.SignInResult signInResult = _signInManager.PasswordSignInAsync(applicationUser, password, false, false).Result;
+            Microsoft.AspNetCore.Identity.SignInResult signInResult = _applicationUsersService.LogIn(applicationUser, password);
             if (signInResult.Succeeded)
             {
                 return Ok();
@@ -101,19 +102,19 @@ namespace Qr_Menu_API.Controllers
             }
         }
 
-        // api/Users/ResetPassword
-        [HttpPost("ResetPassword")]
-        public void ResetPassword(string userName, string password)
-        {
-            ApplicationUser? applicationUser = _signInManager.UserManager.FindByNameAsync(userName).Result;
-            if (applicationUser == null)
-            {
-                return;
-            }
-            _signInManager.UserManager.RemovePasswordAsync(applicationUser).Wait();
-            _signInManager.UserManager.AddPasswordAsync(applicationUser, password).Wait();
-            return;
-        }
+        //// api/Users/ResetPassword
+        //[HttpPost("ResetPassword")]
+        //public void ResetPassword(string userName, string password)
+        //{
+        //    ApplicationUser? applicationUser = _signInManager.UserManager.FindByNameAsync(userName).Result;
+        //    if (applicationUser == null)
+        //    {
+        //        return;
+        //    }
+        //    _signInManager.UserManager.RemovePasswordAsync(applicationUser).Wait();
+        //    _signInManager.UserManager.AddPasswordAsync(applicationUser, password).Wait();
+        //    return;
+        //}
 
         // api/Users/ResetPasswordGenerateToken
         [HttpPost("ResetPasswordGenerateToken")]
@@ -124,7 +125,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return null;
             }
-            return _signInManager.UserManager.GeneratePasswordResetTokenAsync(applicationUser).Result;
+            return _applicationUsersService.ResetPasswordGenerateToken(applicationUser);
         }
 
         // api/Users/ResetPasswordValidateToken
@@ -136,7 +137,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound();
             }
-            IdentityResult identityResult = _signInManager.UserManager.ResetPasswordAsync(applicationUser, token, newPassword).Result;
+            IdentityResult identityResult = _applicationUsersService.ResetPasswordValidateToken(applicationUser, token, newPassword);
             if (identityResult.Succeeded == false)
             {
                 return identityResult.Errors.First().Description;
