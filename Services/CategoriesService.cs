@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Packaging.Signing;
 using Qr_Menu_API.Data;
 using Qr_Menu_API.DTOs.CreateDTOs;
+using Qr_Menu_API.DTOs.DetailedResponseDTOs;
 using Qr_Menu_API.DTOs.ResponseDTOs;
 using Qr_Menu_API.Models;
 
@@ -89,6 +91,32 @@ namespace Qr_Menu_API.Services
                 }
             }
             _context.SaveChanges();
+        }
+
+        public CategoryDetailedResponse GetDetailedCategoryResponse(Category category)
+        {
+            CategoryDetailedResponse categoryDetailedResponse = new()
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Description = category.Description,
+                RestaurantId = category.RestaurantId,
+                StateResponse = new StateResponse
+                {
+                    Id = category.StateId,
+                    Name = _context.States!.Find(category.StateId)!.Name
+                },
+                FoodsDetailed = new List<FoodResponse>()
+            };
+            if (category.Foods != null)
+            {
+                foreach (Food food in category.Foods)
+                {
+                    FoodResponse foodDetailedResponse = _foodsService.GetFoodResponse(food);
+                    categoryDetailedResponse.FoodsDetailed.Add(foodDetailedResponse);
+                }
+            }
+            return categoryDetailedResponse;
         }
     }
 }

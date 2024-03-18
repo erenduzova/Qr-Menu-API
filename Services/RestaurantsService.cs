@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Qr_Menu_API.Data;
 using Qr_Menu_API.DTOs.CreateDTOs;
+using Qr_Menu_API.DTOs.DetailedResponseDTOs;
 using Qr_Menu_API.DTOs.ResponseDTOs;
 using Qr_Menu_API.Models;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -105,7 +106,36 @@ namespace Qr_Menu_API.Services
             _context.SaveChanges();
         }
 
-
+        public RestaurantDetailedResponse GetRestaurantDetailedResponse(Restaurant restaurant)
+        {
+            RestaurantDetailedResponse restaurantDetailedResponse = new()
+            {
+                Id = restaurant.Id,
+                Name = restaurant.Name,
+                WebAddress = restaurant.WebAddress,
+                Phone = restaurant.Phone,
+                PostalCode = restaurant.PostalCode,
+                AddressDetails = restaurant.AddressDetails,
+                RegisterDate = restaurant.RegisterDate,
+                StateResponse = new StateResponse
+                {
+                    Id = restaurant.StateId,
+                    Name = _context.States!.Find(restaurant.StateId)!.Name
+                },
+                CompanyId = restaurant.CompanyId,
+                CategoriesDetailed = new List<CategoryDetailedResponse>()
+            };
+            if (restaurant.Categories != null)
+            {
+                foreach (Category category in restaurant.Categories)
+                {
+                    CategoryDetailedResponse categoryDetailedResponse = _categoriesService.GetDetailedCategoryResponse(category);
+                    restaurantDetailedResponse.CategoriesDetailed.Add(categoryDetailedResponse);
+                }
+            }
+            
+            return restaurantDetailedResponse;
+        }
 
 
     }
