@@ -21,4 +21,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.17" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="DTOs\DetailedResponseDTOs\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DTOs\DetailedResponseDTOs\" />
+  </ItemGroup>
 </Project>
