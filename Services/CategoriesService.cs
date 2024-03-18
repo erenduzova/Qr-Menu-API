@@ -10,10 +10,12 @@ namespace Qr_Menu_API.Services
     public class CategoriesService
     {
         private readonly ApplicationContext _context;
+        private readonly FoodsService _foodsService;
 
-        public CategoriesService(ApplicationContext context)
+        public CategoriesService(ApplicationContext context, FoodsService foodsService)
         {
             _context = context;
+            _foodsService = foodsService;
         }
         public CategoryResponse GetCategoryResponse(Category category)
         {
@@ -78,14 +80,14 @@ namespace Qr_Menu_API.Services
         {
             category.StateId = 0;
             _context.Categories.Update(category);
-            //var foods = category.Foods;
-            //if (foods != null)
-            //{
-            //    foreach (var food in foods)
-            //    {
-            //        _foodsService.DeleteFoodAndRelatedEntities(food);
-            //    }
-            //}
+            var foods = category.Foods;
+            if (foods != null)
+            {
+                foreach (var food in foods)
+                {
+                    _foodsService.DeleteFoodAndRelatedEntities(food);
+                }
+            }
             _context.SaveChanges();
         }
     }
