@@ -22,7 +22,8 @@ namespace Qr_Menu_API
 
             builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationContext")));
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationContext>();
+                .AddEntityFrameworkStores<ApplicationContext>().AddDefaultTokenProviders();
+
             builder.Services.AddScoped<CompaniesService>();
             builder.Services.AddScoped<RestaurantsService>();
             builder.Services.AddScoped<CategoriesService>();
@@ -41,6 +42,10 @@ namespace Qr_Menu_API
 
 
             app.MapControllers();
+
+            ApplicationContext applicationContext = app.Services.CreateScope().ServiceProvider.GetService<ApplicationContext>()!;
+            DbInitializer dbInitializer = new DbInitializer(applicationContext);
+            dbInitializer.Initialize();
 
             app.Run();
         }
