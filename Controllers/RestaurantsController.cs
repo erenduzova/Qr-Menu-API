@@ -103,5 +103,22 @@ namespace Qr_Menu_API.Controllers
             return Ok();
         }
 
+        [HttpGet("Detailed/{id}")]
+        public ActionResult<RestaurantDetailedResponse> GetDetailedRestaurant(int id)
+        {
+            if (_context.Restaurants == null)
+            {
+                return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
+            }
+            var restaurant = _context.Restaurants.Include(r => r.Categories)
+                .ThenInclude(c => c.Foods)
+                .FirstOrDefault(r => r.Id == id);
+            if (restaurant == null)
+            {
+                return NotFound();
+            }
+            return _restaurantsService.GetRestaurantDetailedResponse(restaurant);
+        }
+
     }
 }
