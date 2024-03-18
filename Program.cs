@@ -26,6 +26,7 @@ namespace Qr_Menu_API
             builder.Services.AddScoped<CompaniesService>();
             builder.Services.AddScoped<RestaurantsService>();
             builder.Services.AddScoped<CategoriesService>();
+            builder.Services.AddScoped<FoodsService>();
 
             var app = builder.Build();
 
