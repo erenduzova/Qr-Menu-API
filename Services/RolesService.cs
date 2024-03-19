@@ -12,6 +12,10 @@ namespace Qr_Menu_API.Services
             _roleManager = roleManager;
         }
 
+        public void CreateRole(IdentityRole applicationRole)
+        {
+            _roleManager.CreateAsync(applicationRole).Wait();
+        }
     }
 }
 
