@@ -42,8 +42,8 @@ namespace Qr_Menu_API
                 app.UseSwaggerUI();
             }
 
-            app.UseAuthorization();
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
 
