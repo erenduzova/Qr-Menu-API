@@ -13,11 +13,11 @@ namespace Qr_Menu_API.Models
         [Column(TypeName = "nvarchar(10)")]
         public string Name { get; set; } = "";
 
-        public virtual ICollection<ApplicationUser> ApplicationUsers { get; set; }
-        public virtual ICollection<Company> Companies { get; set; }
-        public virtual ICollection<Restaurant> Restaurants { get; set; }
-        public virtual ICollection<Category> Categories { get; set; }
-        public virtual ICollection<Food> Foods { get; set; }
+        public virtual ICollection<ApplicationUser>? ApplicationUsers { get; set; }
+        public virtual ICollection<Company>? Companies { get; set; }
+        public virtual ICollection<Restaurant>? Restaurants { get; set; }
+        public virtual ICollection<Category>? Categories { get; set; }
+        public virtual ICollection<Food>? Foods { get; set; }
 
         public State(byte id, string name)
         {

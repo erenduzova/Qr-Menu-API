@@ -104,12 +104,12 @@ namespace Qr_Menu_API.Services
 
         public void AssignRole(ApplicationUser applicationUser,IdentityRole identityRole)
         {
-            _signInManager.UserManager.AddToRoleAsync(applicationUser, identityRole.Name).Wait();
+            _signInManager.UserManager.AddToRoleAsync(applicationUser, identityRole.Name!).Wait();
         }
 
         public void UnassignRole(ApplicationUser applicationUser, IdentityRole identityRole)
         {
-            _signInManager.UserManager.RemoveFromRoleAsync(applicationUser, identityRole.Name).Wait();
+            _signInManager.UserManager.RemoveFromRoleAsync(applicationUser, identityRole.Name!).Wait();
         }
     }
 }

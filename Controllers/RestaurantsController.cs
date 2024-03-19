@@ -63,6 +63,10 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult<RestaurantResponse> PutRestaurant(int id, RestaurantCreate updatedRestaurant)
         {
+            if (_context.Restaurants == null)
+            {
+                return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
+            }
             var existingRestaurant = _context.Restaurants.Include(r => r.Categories).FirstOrDefault(r => r.Id == id);
             if (existingRestaurant == null)
             {
@@ -92,6 +96,10 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult DeleteRestaurant(int id)
         {
+            if (_context.Restaurants == null)
+            {
+                return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
+            }
             var restaurant = _context.Restaurants.Include(r => r.Categories).FirstOrDefault(r => r.Id == id);
             if (restaurant == null)
             {
@@ -112,11 +120,7 @@ namespace Qr_Menu_API.Controllers
         [HttpGet("Detailed/{id}")]
         public ActionResult<RestaurantDetailedResponse> GetDetailedRestaurant(int id)
         {
-            if (_context.Restaurants == null)
-            {
-                return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
-            }
-            var restaurant = _context.Restaurants.Include(r => r.Categories)
+            var restaurant = _context.Restaurants!.Include(r => r.Categories)!
                 .ThenInclude(c => c.Foods)
                 .FirstOrDefault(r => r.Id == id);
             if (restaurant == null)

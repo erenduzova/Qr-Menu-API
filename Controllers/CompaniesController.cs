@@ -62,6 +62,10 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult<CompanyResponse> PutCompany(int id, CompanyCreate updatedCompany)
         {
+            if (_context.Companies == null)
+            {
+                return Problem("Entity set 'ApplicationContext.Companies'  is null.");
+            }
             var existingCompany = _context.Companies.Include(c => c.Restaurants).FirstOrDefault(c => c.Id == id);
             if (existingCompany == null)
             {
@@ -90,6 +94,10 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "Administrator")]
         public ActionResult DeleteCompany(int id)
         {
+            if (_context.Companies == null)
+            {
+                return Problem("Entity set 'ApplicationContext.Companies'  is null.");
+            }
             var company = _context.Companies.Include(c => c.Restaurants).FirstOrDefault(c => c.Id == id);
 
             if (company == null)

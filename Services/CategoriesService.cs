@@ -39,7 +39,7 @@ namespace Qr_Menu_API.Services
 
         public List<CategoryResponse> GetCategoriesResponses()
         {
-            List<Category> categories = _context.Categories.Include(c => c.Foods).ToList();
+            List<Category> categories = _context.Categories!.Include(c => c.Foods).ToList();
             List<CategoryResponse> categoriesResponses = new();
             categories.ForEach(category =>
             {
@@ -59,11 +59,11 @@ namespace Qr_Menu_API.Services
                 Foods = new List<Food>()
             };
 
-            _context.Categories.Add(newCategory);
-            var restaurant = _context.Restaurants.Include(r => r.Categories).FirstOrDefault(r => r.Id == categoryCreate.RestaurantId);
+            _context.Categories!.Add(newCategory);
+            var restaurant = _context.Restaurants!.Include(r => r.Categories).FirstOrDefault(r => r.Id == categoryCreate.RestaurantId);
             if (restaurant != null)
             {
-                restaurant.Categories.Add(newCategory);
+                restaurant.Categories!.Add(newCategory);
             }
             _context.SaveChanges();
             return newCategory.Id;
@@ -81,7 +81,7 @@ namespace Qr_Menu_API.Services
         public void DeleteCategoryAndRelatedEntities(Category category)
         {
             category.StateId = 0;
-            _context.Categories.Update(category);
+            _context.Categories!.Update(category);
             var foods = category.Foods;
             if (foods != null)
             {

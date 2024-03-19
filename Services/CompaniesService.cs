@@ -43,7 +43,7 @@ namespace Qr_Menu_API.Services
         }
         public List<CompanyResponse> GetCompaniesResponses()
         {
-            List<Company> companies = _context.Companies.Include(c => c.Restaurants).ToList();
+            List<Company> companies = _context.Companies!.Include(c => c.Restaurants).ToList();
             List<CompanyResponse> companyResponses = new();
             companies.ForEach(company =>
             {
@@ -69,7 +69,7 @@ namespace Qr_Menu_API.Services
                 Restaurants = new List<Restaurant>()
             };
 
-            _context.Companies.Add(newCompany);
+            _context.Companies!.Add(newCompany);
             _context.SaveChanges();
 
             return newCompany.Id;
@@ -93,7 +93,7 @@ namespace Qr_Menu_API.Services
         public void DeleteCompanyAndRelatedEntities(Company company)
         {
             company.StateId = 0;
-            _context.Companies.Update(company);
+            _context.Companies!.Update(company);
             var restaurants = company.Restaurants;
             if (restaurants != null)
             {

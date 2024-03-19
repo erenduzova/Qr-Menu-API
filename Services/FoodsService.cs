@@ -57,7 +57,7 @@ namespace Qr_Menu_API.Services
                 StateId = (byte)1
             };
 
-            _context.Foods.Add(newFood);
+            _context.Foods!.Add(newFood);
             _context.SaveChanges();
 
             return newFood.Id;
@@ -77,7 +77,7 @@ namespace Qr_Menu_API.Services
         public void DeleteFoodAndRelatedEntities(Food food)
         {
             food.StateId = 0;
-            _context.Foods.Update(food);
+            _context.Foods!.Update(food);
             _context.SaveChanges();
         }
     }

@@ -32,10 +32,10 @@ namespace Qr_Menu_API.Controllers
         [Authorize]
         public ActionResult<IEnumerable<CategoryResponse>> GetCategories()
         {
-          if (_context.Categories == null)
-          {
-              return NotFound();
-          }
+            if (_context.Categories == null)
+            {
+                return NotFound();
+            }
             return _categoriesService.GetCategoriesResponses();
         }
 
@@ -44,10 +44,10 @@ namespace Qr_Menu_API.Controllers
         [Authorize]
         public ActionResult<CategoryResponse> GetCategory(int id)
         {
-          if (_context.Categories == null)
-          {
-              return NotFound();
-          }
+            if (_context.Categories == null)
+            {
+                return NotFound();
+            }
             var category = _context.Categories.Include(c => c.Foods).FirstOrDefault(c => c.Id == id);
 
             if (category == null)
@@ -63,6 +63,10 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<CategoryResponse> PutCategory(int id, CategoryCreate updatedCategory)
         {
+            if (_context.Categories == null)
+            {
+                return Problem("Entity set 'ApplicationContext.Categories'  is null.");
+            }
             var existingCategory = _context.Categories.Include(c => c.Foods).FirstOrDefault(c => c.Id == id);
             if (existingCategory == null)
             {
@@ -76,9 +80,9 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<int> PostCategory(CategoryCreate categoryCreate)
         {
-          if (_context.Categories == null)
-          {
-              return Problem("Entity set 'ApplicationContext.Categories'  is null.");
+            if (_context.Categories == null)
+            {
+                return Problem("Entity set 'ApplicationContext.Categories'  is null.");
             }
             if (_context.States == null)
             {
@@ -92,6 +96,10 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult DeleteCategory(int id)
         {
+            if (_context.Categories == null)
+            {
+                return Problem("Entity set 'ApplicationContext.Categories'  is null.");
+            }
             var category = _context.Categories.Include(c => c.Foods).FirstOrDefault(c => c.Id == id);
             if (category == null)
             {

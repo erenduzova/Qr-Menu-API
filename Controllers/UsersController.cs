@@ -180,7 +180,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound();
             }
-            if (_signInManager.UserManager.IsInRoleAsync(applicationUser, identityRole.Name).Result)
+            if (_signInManager.UserManager.IsInRoleAsync(applicationUser, identityRole.Name!).Result)
             {
                 return NotFound();
             }

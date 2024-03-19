@@ -60,6 +60,10 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<FoodResponse> PutFood(int id, FoodCreate updatedFood)
         {
+            if (_context.Foods == null)
+            {
+                return NotFound();
+            }
             var existingFood = _context.Foods.Find(id);
             if (existingFood == null)
             {
