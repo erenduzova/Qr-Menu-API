@@ -9,15 +9,17 @@ using Qr_Menu_API.Models;
 
 namespace Qr_Menu_API.Services
 {
-	public class ApplicationUsersService
+	public class UsersService
     {
         private readonly ApplicationContext _context;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly RolesService _rolesService;
 
-        public ApplicationUsersService(ApplicationContext context, SignInManager<ApplicationUser> signInManager)
+        public UsersService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, RolesService rolesService)
         {
             _context = context;
             _signInManager = signInManager;
+            _rolesService = rolesService;
         }
 
         public ApplicationUserResponse GetApplicationUserResponse(ApplicationUser applicationUser)
@@ -98,6 +100,11 @@ namespace Qr_Menu_API.Services
         public IdentityResult ResetPasswordValidateToken(ApplicationUser applicationUser, string token, string newPassword)
         {
             return _signInManager.UserManager.ResetPasswordAsync(applicationUser, token, newPassword).Result; 
+        }
+
+        public void AssignRole(ApplicationUser applicationUser,IdentityRole identityRole)
+        {
+            _signInManager.UserManager.AddToRoleAsync(applicationUser, identityRole.Name!).Wait();
         }
     }
 }

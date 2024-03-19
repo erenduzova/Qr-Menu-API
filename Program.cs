@@ -23,12 +23,15 @@ namespace Qr_Menu_API
             builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationContext")));
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationContext>().AddDefaultTokenProviders();
+            builder.Services.AddAuthentication();
+            builder.Services.AddAuthorization();
 
             builder.Services.AddScoped<CompaniesService>();
             builder.Services.AddScoped<RestaurantsService>();
             builder.Services.AddScoped<CategoriesService>();
             builder.Services.AddScoped<FoodsService>();
-            builder.Services.AddScoped<ApplicationUsersService>();
+            builder.Services.AddScoped<RolesService>();
+            builder.Services.AddScoped<UsersService>();
 
             var app = builder.Build();
 
@@ -40,14 +43,22 @@ namespace Qr_Menu_API
             }
 
             app.UseAuthorization();
-
+            app.UseAuthentication();
 
             app.MapControllers();
 
             ApplicationContext applicationContext = app.Services.CreateScope().ServiceProvider.GetService<ApplicationContext>()!;
-            DbInitializer dbInitializer = new DbInitializer(applicationContext);
-            dbInitializer.Initialize();
+            UserManager<ApplicationUser>? userManager = app.Services.CreateScope().ServiceProvider.GetService<UserManager<ApplicationUser>>();
+            RoleManager<IdentityRole>? roleManager = app.Services.CreateScope().ServiceProvider.GetService<RoleManager<IdentityRole>>();
+            if (roleManager != null)
+            {
+                if (userManager != null)
+                {
+                    DbInitializer dbInitializer = new DbInitializer(applicationContext, userManager, roleManager);
+                    dbInitializer.Initialize();
+                }
 
+            }
             app.Run();
         }
     }

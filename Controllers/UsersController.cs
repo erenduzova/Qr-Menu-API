@@ -12,15 +12,17 @@ namespace Qr_Menu_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ApplicationUsersController : ControllerBase
+    public class UsersController : ControllerBase
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly ApplicationUsersService _applicationUsersService;
+        private readonly UsersService _usersService;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public ApplicationUsersController(SignInManager<ApplicationUser> signInManager, ApplicationUsersService applicationUsersService)
+        public UsersController(SignInManager<ApplicationUser> signInManager, UsersService usersService, RoleManager<IdentityRole> roleManager)
         {
             _signInManager = signInManager;
-            _applicationUsersService = applicationUsersService;
+            _usersService = usersService;
+            _roleManager = roleManager;
         }
 
         // GET: api/Users
@@ -31,7 +33,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound();
             }
-            return _applicationUsersService.GetApplicationUserResponses();
+            return _usersService.GetApplicationUserResponses();
         }
 
         // GET: api/Users/5
@@ -47,7 +49,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound();
             }
-            return _applicationUsersService.GetApplicationUserResponse(applicationUser);
+            return _usersService.GetApplicationUserResponse(applicationUser);
         }
 
         // PUT: api/Users/5
@@ -60,14 +62,14 @@ namespace Qr_Menu_API.Controllers
                 return NotFound();
             }
             
-            return _applicationUsersService.UpdateApplicationUser(existingApplicationUser, updatedApplicationUser);
+            return _usersService.UpdateApplicationUser(existingApplicationUser, updatedApplicationUser);
         }
 
         // POST: api/Users
         [HttpPost]
         public string PostApplicationUser(ApplicationUserCreate applicationUserCreate, string password)
         {
-            return _applicationUsersService.CreateApplicationUser(applicationUserCreate, password);
+            return _usersService.CreateApplicationUser(applicationUserCreate, password);
         }
 
         // DELETE: api/Users/5
@@ -79,7 +81,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound();
             }
-            _applicationUsersService.DeleteApplicationUserAndRelatedEntities(applicationUser);
+            _usersService.DeleteApplicationUserAndRelatedEntities(applicationUser);
             return Ok();
         }
 
@@ -92,7 +94,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound();
             }
-            Microsoft.AspNetCore.Identity.SignInResult signInResult = _applicationUsersService.LogIn(applicationUser, password);
+            Microsoft.AspNetCore.Identity.SignInResult signInResult = _usersService.LogIn(applicationUser, password);
             if (signInResult.Succeeded)
             {
                 return Ok();
@@ -125,7 +127,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return null;
             }
-            return _applicationUsersService.ResetPasswordGenerateToken(applicationUser);
+            return _usersService.ResetPasswordGenerateToken(applicationUser);
         }
 
         // api/Users/ResetPasswordValidateToken
@@ -137,7 +139,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound();
             }
-            IdentityResult identityResult = _applicationUsersService.ResetPasswordValidateToken(applicationUser, token, newPassword);
+            IdentityResult identityResult = _usersService.ResetPasswordValidateToken(applicationUser, token, newPassword);
             if (identityResult.Succeeded == false)
             {
                 return identityResult.Errors.First().Description;
@@ -145,5 +147,23 @@ namespace Qr_Menu_API.Controllers
             return Ok();
         }
 
+        // api/Users/AssignRole/
+        [HttpPost("AssignRole")]
+        public ActionResult AssignRole(string userId, string roleId)
+        {
+            ApplicationUser? applicationUser = _signInManager.UserManager.FindByIdAsync(userId).Result;
+            if (applicationUser == null)
+            {
+                return NotFound();
+            }
+            IdentityRole? identityRole = _roleManager.FindByIdAsync(roleId).Result;
+            if (identityRole == null)
+            {
+                return NotFound();
+            }
+            _usersService.AssignRole(applicationUser, identityRole);
+            return Ok();
+                
+        }
     }
 }
