@@ -32,6 +32,7 @@ namespace Qr_Menu_API.Services
                 RegisterDate = company.RegisterDate,
                 TaxNumber = company.TaxNumber,
                 WebAddress = company.WebAddress,
+                ParentCompanyId = company.ParentCompanyId,
                 StateResponse = new StateResponse
                 {
                     Id = company.StateId,
@@ -65,6 +66,7 @@ namespace Qr_Menu_API.Services
                 RegisterDate = DateTime.Now,
                 TaxNumber = companyCreate.TaxNumber,
                 WebAddress = companyCreate.WebAddress,
+                ParentCompanyId = companyCreate.ParentCompanyId,
                 StateId = (byte)1,
                 Restaurants = new List<Restaurant>()
             };

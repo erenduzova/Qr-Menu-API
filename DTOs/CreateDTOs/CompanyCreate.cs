@@ -37,5 +37,6 @@ namespace Qr_Menu_API.DTOs.CreateDTOs
         [Column(TypeName = "varchar(100)")]
         public string? WebAddress { get; set; }
 
+        public int? ParentCompanyId { get; set; }
     }
 }

@@ -46,6 +46,7 @@ namespace Qr_Menu_API.Data
                         RegisterDate = DateTime.Today,
                         TaxNumber = "8150037902",
                         WebAddress = "www.tabgida.com.tr",
+                        ParentCompanyId = null,
                         StateId = (byte)1
                     };
                     _applicationContext.Companies!.Add(company);

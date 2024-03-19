@@ -21,6 +21,8 @@ namespace Qr_Menu_API.DTOs.ResponseDTOs
 
         public string? WebAddress { get; set; }
 
+        public int? ParentCompanyId { get; set; }
+
         public StateResponse? StateResponse { get; set; }
 
         public ICollection<int>? RestaurantIds { get; set; }

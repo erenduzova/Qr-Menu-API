@@ -40,7 +40,11 @@ namespace Qr_Menu_API.Models
         [StringLength(100)]
         [Column(TypeName = "varchar(100)")]
         public string? WebAddress { get; set; }
-        
+
+        public int? ParentCompanyId { get; set; }
+        [ForeignKey("ParentCompanyId")]
+        public Company? ParentCompany { get; set; }
+
         public byte StateId { get; set; }
         [ForeignKey("StateId")]
         public State? State { get; set; }
