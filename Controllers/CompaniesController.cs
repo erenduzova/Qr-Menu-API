@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +30,7 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Companies
         [HttpGet]
+        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult<IEnumerable<CompanyResponse>> GetCompanies()
         {
             if (_context.Companies == null)
@@ -39,6 +42,7 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Companies/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult<CompanyResponse> GetCompany(int id)
         {
             if (_context.Companies == null)
@@ -55,6 +59,7 @@ namespace Qr_Menu_API.Controllers
 
         // PUT: api/Companies/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult<CompanyResponse> PutCompany(int id, CompanyCreate updatedCompany)
         {
             var existingCompany = _context.Companies.Include(c => c.Restaurants).FirstOrDefault(c => c.Id == id);
@@ -67,6 +72,7 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Companies
         [HttpPost]
+        [Authorize(Roles = "Administrator")]
         public ActionResult<int> PostCompany(CompanyCreate companyCreate)
         {
             if (_context.Companies == null)
@@ -81,6 +87,7 @@ namespace Qr_Menu_API.Controllers
         }
         // DELETE: api/Companies/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrator")]
         public ActionResult DeleteCompany(int id)
         {
             var company = _context.Companies.Include(c => c.Restaurants).FirstOrDefault(c => c.Id == id);
