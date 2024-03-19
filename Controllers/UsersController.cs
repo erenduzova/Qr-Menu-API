@@ -147,7 +147,7 @@ namespace Qr_Menu_API.Controllers
             return Ok();
         }
 
-        // api/Users/AssignRole/
+        // api/Users/AssignRole
         [HttpPost("AssignRole")]
         public ActionResult AssignRole(string userId, string roleId)
         {
@@ -164,6 +164,28 @@ namespace Qr_Menu_API.Controllers
             _usersService.AssignRole(applicationUser, identityRole);
             return Ok();
                 
+        }
+
+        // api/Users/UnassignRole
+        [HttpPut("UnassignRole")]
+        public ActionResult UnassignRole(string userId, string roleId)
+        {
+            ApplicationUser? applicationUser = _signInManager.UserManager.FindByIdAsync(userId).Result;
+            if (applicationUser == null)
+            {
+                return NotFound();
+            }
+            IdentityRole? identityRole = _roleManager.FindByIdAsync(roleId).Result;
+            if (identityRole == null)
+            {
+                return NotFound();
+            }
+            if (_signInManager.UserManager.IsInRoleAsync(applicationUser, identityRole.Name).Result)
+            {
+                return NotFound();
+            }
+            _usersService.UnassignRole(applicationUser, identityRole);
+            return Ok();
         }
     }
 }
