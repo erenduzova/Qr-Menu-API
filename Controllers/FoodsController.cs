@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +57,7 @@ namespace Qr_Menu_API.Controllers
 
         // PUT: api/Foods/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<FoodResponse> PutFood(int id, FoodCreate updatedFood)
         {
             var existingFood = _context.Foods.Find(id);
@@ -70,6 +72,7 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Foods
         [HttpPost]
+        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<int> PostFood(FoodCreate foodCreate)
         {
             if (_context.Foods == null)
@@ -85,6 +88,7 @@ namespace Qr_Menu_API.Controllers
 
         // DELETE: api/Foods/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult DeleteFood(int id)
         {
             if (_context.Foods == null)
