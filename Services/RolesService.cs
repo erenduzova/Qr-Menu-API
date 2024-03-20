@@ -16,6 +16,11 @@ namespace Qr_Menu_API.Services
         {
             _roleManager.CreateAsync(applicationRole).Wait();
         }
+
+        public void DeleteRole(IdentityRole identityRole)
+        {
+            _roleManager.DeleteAsync(identityRole).Wait();
+        }
     }
 }
 
