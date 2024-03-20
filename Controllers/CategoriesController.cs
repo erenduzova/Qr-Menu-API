@@ -34,7 +34,7 @@ namespace Qr_Menu_API.Controllers
         {
             if (_context.Categories == null)
             {
-                return NotFound();
+                return Problem("Entity set 'ApplicationContext.Categories'  is null.");
             }
             return _categoriesService.GetCategoriesResponses();
         }
@@ -46,7 +46,7 @@ namespace Qr_Menu_API.Controllers
         {
             if (_context.Categories == null)
             {
-                return NotFound();
+                return Problem("Entity set 'ApplicationContext.Categories'  is null.");
             }
             var category = _context.Categories.Include(c => c.Foods).FirstOrDefault(c => c.Id == id);
 
