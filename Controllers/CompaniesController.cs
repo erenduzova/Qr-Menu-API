@@ -107,14 +107,6 @@ namespace Qr_Menu_API.Controllers
 
             _companiesService.DeleteCompanyAndRelatedEntities(company);
 
-            //IQueryable<ApplicationUser> applicationUsers = _context.Users.Where(u => u.CompanyId == id);
-            //UsersService usersService = new UsersService(_context);
-            //foreach (ApplicationUser applicationUser in applicationUsers)
-            //{
-            //    usersService.DeleteUserAndRelatedEntities(applicationUser.Id);
-            //}
-            //_context.SaveChanges();
-
             return Ok();
 
         }

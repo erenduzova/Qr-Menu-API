@@ -50,5 +50,6 @@ namespace Qr_Menu_API.Models
         public State? State { get; set; }
 
         public virtual ICollection<Restaurant>? Restaurants { get; set; }
+        public virtual ICollection<ApplicationUser>? Users { get; set; }
     }
 }

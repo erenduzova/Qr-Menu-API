@@ -12,11 +12,13 @@ namespace Qr_Menu_API.Services
     {
         private readonly ApplicationContext _context;
         private readonly RestaurantsService _restaurantService;
+        private readonly UsersService _userService;
 
-        public CompaniesService(ApplicationContext context, RestaurantsService restaurantService)
+        public CompaniesService(ApplicationContext context, RestaurantsService restaurantService, UsersService usersService)
         {
             _context = context;
             _restaurantService = restaurantService;
+            _userService = usersService;
         }
 
         public CompanyResponse GetCompanyResponse(Company company)
@@ -104,6 +106,16 @@ namespace Qr_Menu_API.Services
                     _restaurantService.DeleteRestaurantAndRelatedEntities(restaurant);
                 }
             }
+
+            var users = company.Users;
+            if (users != null)
+            {
+                foreach( ApplicationUser user in users)
+                {
+                    _userService.DeleteApplicationUserAndRelatedEntities(user);
+                }
+            }
+
             _context.SaveChanges();
         }
 
