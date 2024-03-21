@@ -43,7 +43,8 @@ namespace Qr_Menu_API.Services
         {
             return _context.Companies!
                 .Include(c => c.Restaurants)
-                .Include(c => c.State).First(c => c.Id == companyId);
+                .Include(c => c.State)
+                .First(c => c.Id == companyId);
         }
 
         private List<Company> GetCompaniesWithRestaurants()
@@ -51,6 +52,24 @@ namespace Qr_Menu_API.Services
             return _context.Companies!
                 .Include(c => c.Restaurants)
                 .Include(c => c.State)
+                .ToList();
+        }
+
+        private Company GetCompanyWithRestaurantsAndUsers(int companyId)
+        {
+            return _context.Companies!
+                .Include(c => c.Restaurants)
+                .Include(c => c.State)
+                .Include(c => c.Users)
+                .First(c => c.Id == companyId);
+        }
+
+        private List<Company> GetCompaniesWithRestaurantsAndUsers()
+        {
+            return _context.Companies!
+                .Include(c => c.Restaurants)
+                .Include(c => c.State)
+                .Include(c => c.Users)
                 .ToList();
         }
 
@@ -87,7 +106,7 @@ namespace Qr_Menu_API.Services
 
         public void DeleteCompanyAndRelatedEntities(int companyId)
         {
-            Company company = GetCompanyWithRestaurants(companyId);
+            Company company = GetCompanyWithRestaurantsAndUsers(companyId);
 
             company.StateId = 0;
             _context.Companies!.Update(company);
@@ -95,7 +114,7 @@ namespace Qr_Menu_API.Services
             ICollection<Restaurant>? restaurants = company.Restaurants;
             if (restaurants != null)
             {
-                foreach (var restaurant in restaurants)
+                foreach (Restaurant restaurant in restaurants)
                 {
                     _restaurantService.DeleteRestaurantAndRelatedEntities(restaurant);
                 }
