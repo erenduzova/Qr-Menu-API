@@ -78,7 +78,7 @@ namespace Qr_Menu_API.Services
 
         public CompanyResponse UpdateCompany(int companyId, CompanyCreate updatedCompany)
         {
-            Company existingCompany = _context.Companies!.Include(c => c.Restaurants).First(c => c.Id == companyId);
+            Company existingCompany = GetCompanyWithRestaurants(companyId);
             existingCompany = _companyConverter.Convert(existingCompany, updatedCompany);
             _context.Update(existingCompany);
             _context.SaveChanges();
@@ -87,7 +87,7 @@ namespace Qr_Menu_API.Services
 
         public void DeleteCompanyAndRelatedEntities(int companyId)
         {
-            Company company = _context.Companies!.Include(c => c.Restaurants).First(c => c.Id == companyId);
+            Company company = GetCompanyWithRestaurants(companyId);
 
             company.StateId = 0;
             _context.Companies!.Update(company);
