@@ -84,7 +84,7 @@ namespace Qr_Menu_API.Services
         {
             applicationUser.StateId = 0;
             _signInManager.UserManager.UpdateAsync(applicationUser).Wait();
-            
+            _signInManager.SignOutAsync().Wait();
         }
 
         public Microsoft.AspNetCore.Identity.SignInResult LogIn(ApplicationUser applicationUser, string password)
