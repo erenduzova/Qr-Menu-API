@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Qr_Menu_API.Data;
+using Qr_Menu_API.DTOs.Converter;
 using Qr_Menu_API.Models;
 using Qr_Menu_API.Services;
 
@@ -25,6 +26,9 @@ namespace Qr_Menu_API
                 .AddEntityFrameworkStores<ApplicationContext>().AddDefaultTokenProviders();
             builder.Services.AddAuthentication();
             builder.Services.AddAuthorization();
+
+            builder.Services.AddScoped<StateConverter>();
+            builder.Services.AddScoped<CompanyConverter>();
 
             builder.Services.AddScoped<CompaniesService>();
             builder.Services.AddScoped<RestaurantsService>();
