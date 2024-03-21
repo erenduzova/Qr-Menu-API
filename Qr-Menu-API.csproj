@@ -23,8 +23,10 @@
 
   <ItemGroup>
     <None Remove="DTOs\DetailedResponseDTOs\" />
+    <None Remove="DTOs\Converter\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTOs\DetailedResponseDTOs\" />
+    <Folder Include="DTOs\Converter\" />
   </ItemGroup>
 </Project>
