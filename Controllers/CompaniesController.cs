@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,14 +29,25 @@ namespace Qr_Menu_API.Controllers
             _companiesService = companiesService;
         }
 
+        private bool CompaniesIsNull()
+        {
+            return _context.Companies == null;
+        }
+
+        private bool CompanyExists(int id)
+        {
+            return _context.Companies!
+                .Any(c => c.Id == id);
+        }
+
         // GET: api/Companies
         [HttpGet]
         [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult<IEnumerable<CompanyResponse>> GetCompanies()
         {
-            if (_context.Companies == null)
+            if (CompaniesIsNull())
             {
-                return NotFound();
+                return Problem("Entity set 'ApplicationContext.Companies'  is null.");
             }
             return _companiesService.GetCompaniesResponses();
         }
@@ -43,72 +55,62 @@ namespace Qr_Menu_API.Controllers
         // GET: api/Companies/5
         [HttpGet("{id}")]
         [Authorize(Roles = "Administrator,CompanyAdministrator")]
-        public ActionResult<CompanyResponse> GetCompany(int id)
+        public ActionResult<CompanyResponse> GetCompany(int companyId)
         {
-            if (_context.Companies == null)
+            if (CompaniesIsNull())
             {
-                return NotFound();
+                return Problem("Entity set 'ApplicationContext.Companies'  is null.");
             }
-            var company = _context.Companies.Include(c => c.Restaurants).FirstOrDefault(c => c.Id == id);
-            if (company == null)
+            if (!CompanyExists(companyId))
             {
-                return NotFound();
+                return NotFound("Company not found with this id: " + companyId);
             }
-            return _companiesService.GetCompanyResponse(company);
+            return _companiesService.GetCompanyResponse(companyId);
         }
 
         // PUT: api/Companies/5
         [HttpPut("{id}")]
         [Authorize(Roles = "Administrator,CompanyAdministrator")]
-        public ActionResult<CompanyResponse> PutCompany(int id, CompanyCreate updatedCompany)
+        public ActionResult<CompanyResponse> PutCompany(int companyId, CompanyCreate updatedCompany)
         {
-            if (_context.Companies == null)
+            if (CompaniesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Companies'  is null.");
             }
-            var existingCompany = _context.Companies.Include(c => c.Restaurants).FirstOrDefault(c => c.Id == id);
-            if (existingCompany == null)
+            if (!CompanyExists(companyId))
             {
-                return BadRequest();
+                return NotFound("Company not found with this id: " + companyId);
             }
-            return _companiesService.UpdateCompany(existingCompany, updatedCompany);
+            return _companiesService.UpdateCompany(companyId, updatedCompany);
         }
 
         // POST: api/Companies
         [HttpPost]
         [Authorize(Roles = "Administrator")]
-        public ActionResult<int> PostCompany(CompanyCreate companyCreate)
+        public ActionResult<CompanyResponse> PostCompany(CompanyCreate companyCreate)
         {
-            if (_context.Companies == null)
+            if (CompaniesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Companies'  is null.");
-            }
-            if (_context.States == null)
-            {
-                return Problem("Entity set 'ApplicationContext.States'  is null.");
             }
             return _companiesService.CreateCompany(companyCreate);
         }
+
         // DELETE: api/Companies/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "Administrator")]
-        public ActionResult DeleteCompany(int id)
+        public ActionResult DeleteCompany(int companyId)
         {
-            if (_context.Companies == null)
+            if (CompaniesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Companies'  is null.");
             }
-            var company = _context.Companies.Include(c => c.Restaurants).FirstOrDefault(c => c.Id == id);
-
-            if (company == null)
+            if (!CompanyExists(companyId))
             {
-                return NotFound();
+                return NotFound("Company not found with this id: " + companyId);
             }
-
-            _companiesService.DeleteCompanyAndRelatedEntities(company);
-
+            _companiesService.DeleteCompanyAndRelatedEntities(companyId);
             return Ok();
-
         }
 
     }

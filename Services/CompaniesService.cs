@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Qr_Menu_API.Data;
+using Qr_Menu_API.DTOs.Converter;
 using Qr_Menu_API.DTOs.CreateDTOs;
 using Qr_Menu_API.DTOs.ResponseDTOs;
 using Qr_Menu_API.Models;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 
 namespace Qr_Menu_API.Services
@@ -13,92 +15,84 @@ namespace Qr_Menu_API.Services
         private readonly ApplicationContext _context;
         private readonly RestaurantsService _restaurantService;
         private readonly UsersService _userService;
+        private readonly CompanyConverter _companyConverter;
 
-        public CompaniesService(ApplicationContext context, RestaurantsService restaurantService, UsersService usersService)
+        public CompaniesService(ApplicationContext context, RestaurantsService restaurantService, UsersService usersService, CompanyConverter companyConverter)
         {
             _context = context;
             _restaurantService = restaurantService;
             _userService = usersService;
+            _companyConverter = companyConverter;
         }
 
-        public CompanyResponse GetCompanyResponse(Company company)
+        private Company GetCompany(int companyId)
         {
-            CompanyResponse companyResponse = new()
-            {
-                Id = company.Id,
-                Name = company.Name,
-                PostalCode = company.PostalCode,
-                AddressDetails = company.AddressDetails,
-                Phone = company.Phone,
-                EMail = company.EMail,
-                RegisterDate = company.RegisterDate,
-                TaxNumber = company.TaxNumber,
-                WebAddress = company.WebAddress,
-                ParentCompanyId = company.ParentCompanyId,
-                StateResponse = new StateResponse
-                {
-                    Id = company.StateId,
-                    Name = _context.States!.Find(company.StateId)!.Name
-                },
-                RestaurantIds = company.Restaurants?.Select(r => r.Id).ToList()
-            };
-            return companyResponse;
+            return _context.Companies!
+                .Include(c => c.State)
+                .First(c => c.Id == companyId);
         }
+
+        private List<Company> GetCompanies()
+        {
+            return _context.Companies!
+                .Include(c => c.State)
+                .ToList();
+        }
+
+        private Company GetCompanyWithRestaurants(int companyId)
+        {
+            return _context.Companies!
+                .Include(c => c.Restaurants)
+                .Include(c => c.State).First(c => c.Id == companyId);
+        }
+
+        private List<Company> GetCompaniesWithRestaurants()
+        {
+            return _context.Companies!
+                .Include(c => c.Restaurants)
+                .Include(c => c.State)
+                .ToList();
+        }
+
+        public CompanyResponse GetCompanyResponse(int companyId)
+        {
+            Company foundCompany = GetCompanyWithRestaurants(companyId);
+            return _companyConverter.Convert(foundCompany);
+        }
+
+
         public List<CompanyResponse> GetCompaniesResponses()
         {
-            List<Company> companies = _context.Companies!.Include(c => c.Restaurants).ToList();
-            List<CompanyResponse> companyResponses = new();
-            companies.ForEach(company =>
-            {
-                companyResponses.Add(GetCompanyResponse(company));
-            });
-            return companyResponses;
+            List<Company> companies = GetCompaniesWithRestaurants();
+            return _companyConverter.Convert(companies);
         }
 
 
-        public int CreateCompany(CompanyCreate companyCreate)
+        public CompanyResponse CreateCompany(CompanyCreate companyCreate)
         {
-            Company newCompany = new()
-            {
-                Name = companyCreate.Name,
-                PostalCode = companyCreate.PostalCode,
-                AddressDetails = companyCreate.AddressDetails,
-                Phone = companyCreate.Phone,
-                EMail = companyCreate.EMail,
-                RegisterDate = DateTime.Now,
-                TaxNumber = companyCreate.TaxNumber,
-                WebAddress = companyCreate.WebAddress,
-                ParentCompanyId = companyCreate.ParentCompanyId,
-                StateId = (byte)1,
-                Restaurants = new List<Restaurant>()
-            };
-
+            Company newCompany = _companyConverter.Convert(companyCreate);
             _context.Companies!.Add(newCompany);
             _context.SaveChanges();
-
-            return newCompany.Id;
+            return GetCompanyResponse(newCompany.Id);
         }
 
-        public CompanyResponse UpdateCompany(Company existingCompany, CompanyCreate updatedCompany)
+        public CompanyResponse UpdateCompany(int companyId, CompanyCreate updatedCompany)
         {
-            existingCompany.Name = updatedCompany.Name;
-            existingCompany.PostalCode = updatedCompany.PostalCode;
-            existingCompany.AddressDetails = updatedCompany.AddressDetails;
-            existingCompany.Phone = updatedCompany.Phone;
-            existingCompany.EMail = updatedCompany.EMail;
-            existingCompany.TaxNumber = updatedCompany.TaxNumber;
-            existingCompany.WebAddress = updatedCompany.WebAddress;
-
+            Company existingCompany = _context.Companies!.Include(c => c.Restaurants).First(c => c.Id == companyId);
+            existingCompany = _companyConverter.Convert(existingCompany, updatedCompany);
             _context.Update(existingCompany);
             _context.SaveChanges();
-            return GetCompanyResponse(existingCompany);
+            return GetCompanyResponse(existingCompany.Id);
         }
 
-        public void DeleteCompanyAndRelatedEntities(Company company)
+        public void DeleteCompanyAndRelatedEntities(int companyId)
         {
+            Company company = _context.Companies!.Include(c => c.Restaurants).First(c => c.Id == companyId);
+
             company.StateId = 0;
             _context.Companies!.Update(company);
-            var restaurants = company.Restaurants;
+
+            ICollection<Restaurant>? restaurants = company.Restaurants;
             if (restaurants != null)
             {
                 foreach (var restaurant in restaurants)
@@ -107,7 +101,7 @@ namespace Qr_Menu_API.Services
                 }
             }
 
-            var users = company.Users;
+            ICollection<ApplicationUser>? users = company.Users;
             if (users != null)
             {
                 foreach( ApplicationUser user in users)
