@@ -29,6 +29,7 @@ namespace Qr_Menu_API
 
             builder.Services.AddScoped<StateConverter>();
             builder.Services.AddScoped<CompanyConverter>();
+            builder.Services.AddScoped<RestaurantConverter>();
 
             builder.Services.AddScoped<CompaniesService>();
             builder.Services.AddScoped<RestaurantsService>();
