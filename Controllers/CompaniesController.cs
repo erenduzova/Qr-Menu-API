@@ -55,33 +55,33 @@ namespace Qr_Menu_API.Controllers
         // GET: api/Companies/5
         [HttpGet("{id}")]
         [Authorize(Roles = "Administrator,CompanyAdministrator")]
-        public ActionResult<CompanyResponse> GetCompany(int companyId)
+        public ActionResult<CompanyResponse> GetCompany(int id)
         {
             if (CompaniesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Companies'  is null.");
             }
-            if (!CompanyExists(companyId))
+            if (!CompanyExists(id))
             {
-                return NotFound("Company not found with this id: " + companyId);
+                return NotFound("Company not found with this id: " + id);
             }
-            return _companiesService.GetCompanyResponse(companyId);
+            return _companiesService.GetCompanyResponse(id);
         }
 
         // PUT: api/Companies/5
         [HttpPut("{id}")]
         [Authorize(Roles = "Administrator,CompanyAdministrator")]
-        public ActionResult<CompanyResponse> PutCompany(int companyId, CompanyCreate updatedCompany)
+        public ActionResult<CompanyResponse> PutCompany(int id, CompanyCreate updatedCompany)
         {
             if (CompaniesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Companies'  is null.");
             }
-            if (!CompanyExists(companyId))
+            if (!CompanyExists(id))
             {
-                return NotFound("Company not found with this id: " + companyId);
+                return NotFound("Company not found with this id: " + id);
             }
-            return _companiesService.UpdateCompany(companyId, updatedCompany);
+            return _companiesService.UpdateCompany(id, updatedCompany);
         }
 
         // POST: api/Companies
@@ -99,17 +99,17 @@ namespace Qr_Menu_API.Controllers
         // DELETE: api/Companies/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "Administrator")]
-        public ActionResult DeleteCompany(int companyId)
+        public ActionResult DeleteCompany(int id)
         {
             if (CompaniesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Companies'  is null.");
             }
-            if (!CompanyExists(companyId))
+            if (!CompanyExists(id))
             {
-                return NotFound("Company not found with this id: " + companyId);
+                return NotFound("Company not found with this id: " + id);
             }
-            _companiesService.DeleteCompanyAndRelatedEntities(companyId);
+            _companiesService.DeleteCompanyAndRelatedEntities(id);
             return Ok();
         }
 
