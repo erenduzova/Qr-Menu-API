@@ -53,23 +53,6 @@ namespace Qr_Menu_API.Services
                 .ToList();
         }
 
-        private Restaurant GetRestaurantWithCategoriesAndUsers(int companyId)
-        {
-            return _context.Restaurants!
-                .Include(c => c.Categories)
-                .Include(c => c.State)
-                .Include(c => c.Users)
-                .First(c => c.Id == companyId);
-        }
-
-        private List<Restaurant> GetRestaurantsWithCategoriesAndUsers()
-        {
-            return _context.Restaurants!
-                .Include(c => c.Categories)
-                .Include(c => c.State)
-                .Include(c => c.Users)
-                .ToList();
-        }
 
         public RestaurantResponse GetRestaurantResponse(int id)
         {
@@ -118,7 +101,7 @@ namespace Qr_Menu_API.Services
 
         public void DeleteRestaurantAndRelatedEntitiesById(int id)
         {
-            Restaurant restaurant = GetRestaurantWithCategoriesAndUsers(id);
+            Restaurant restaurant = GetRestaurantWithCategories(id);
             DeleteRestaurantAndRelatedEntities(restaurant);
         }
 
