@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Qr_Menu_API.Data;
+using Qr_Menu_API.DTOs.Converter;
 using Qr_Menu_API.DTOs.CreateDTOs;
 using Qr_Menu_API.DTOs.DetailedResponseDTOs;
 using Qr_Menu_API.DTOs.ResponseDTOs;
@@ -13,92 +14,101 @@ namespace Qr_Menu_API.Services
     {
         private readonly ApplicationContext _context;
         private readonly CategoriesService _categoriesService;
+        private readonly RestaurantConverter _restaurantConverter;
 
-        public RestaurantsService(ApplicationContext context, CategoriesService categoriesService)
+        public RestaurantsService(ApplicationContext context, CategoriesService categoriesService, RestaurantConverter restaurantConverter)
         {
             _context = context;
             _categoriesService = categoriesService;
+            _restaurantConverter = restaurantConverter;
         }
-        public RestaurantResponse GetRestaurantResponse(Restaurant restaurant)
+
+        private Restaurant GetRestaurant(int restaurantId)
         {
-            RestaurantResponse restaurantResponse = new()
-            {
-                Id = restaurant.Id,
-                Name = restaurant.Name,
-                WebAddress = restaurant.WebAddress,
-                Phone = restaurant.Phone,
-                PostalCode = restaurant.PostalCode,
-                AddressDetails = restaurant.AddressDetails,
-                RegisterDate = restaurant.RegisterDate,
-                StateResponse = new StateResponse
-                {
-                    Id = restaurant.StateId,
-                    Name = _context.States!.Find(restaurant.StateId)!.Name
-                },
-                CompanyId = restaurant.CompanyId,
-                CategoryIds = restaurant.Categories?.Select(c => c.Id).ToList()
-            };
-            return restaurantResponse;
+            return _context.Restaurants!
+                .Include(r => r.State)
+                .First(r => r.Id == restaurantId);
+        }
+
+        private List<Restaurant> GetRestaurants()
+        {
+            return _context.Restaurants!
+                .Include(r => r.State)
+                .ToList();
+        }
+
+        private Restaurant GetRestaurantWithCategories(int restaurantId)
+        {
+            return _context.Restaurants!
+                .Include(r => r.Categories)
+                .Include(r => r.State)
+                .First(r => r.Id == restaurantId);
+        }
+
+        private List<Restaurant> GetRestaurantsWithCategories()
+        {
+            return _context.Restaurants!
+                .Include(c => c.Categories)
+                .Include(c => c.State)
+                .ToList();
+        }
+
+        private Restaurant GetRestaurantWithCategoriesAndUsers(int companyId)
+        {
+            return _context.Restaurants!
+                .Include(c => c.Categories)
+                .Include(c => c.State)
+                .Include(c => c.Users)
+                .First(c => c.Id == companyId);
+        }
+
+        private List<Restaurant> GetRestaurantsWithCategoriesAndUsers()
+        {
+            return _context.Restaurants!
+                .Include(c => c.Categories)
+                .Include(c => c.State)
+                .Include(c => c.Users)
+                .ToList();
+        }
+
+        public RestaurantResponse GetRestaurantResponse(int id)
+        {
+            Restaurant foundRestaurant = GetRestaurantWithCategories(id);
+            return _restaurantConverter.Convert(foundRestaurant);
         }
 
         public List<RestaurantResponse> GetRestaurantsResponses()
         {
-            List<Restaurant> restaurants = _context.Restaurants!.Include(r => r.Categories).ToList();
-            List<RestaurantResponse> restaurantResponses = new();
-            restaurants.ForEach(restaurant =>
-            {
-                restaurantResponses.Add(GetRestaurantResponse(restaurant));
-            });
-            return restaurantResponses;
+            List<Restaurant> restaurants = GetRestaurantsWithCategories();
+            return _restaurantConverter.Convert(restaurants);
         }
 
         public int CreateRestaurant(RestaurantCreate restaurantCreate)
         {
-            Restaurant newRestaurant = new()
-            {
-                Name = restaurantCreate.Name,
-                CompanyId = restaurantCreate.CompanyId,
-                WebAddress = restaurantCreate.WebAddress,
-                Phone = restaurantCreate.Phone,
-                PostalCode = restaurantCreate.PostalCode,
-                AddressDetails = restaurantCreate.AddressDetails,
-                RegisterDate = DateTime.Now,
-                StateId = (byte)1,
-                Categories = new List<Category>()
-            };
-
+            Restaurant newRestaurant = _restaurantConverter.Convert(restaurantCreate);
             _context.Restaurants!.Add(newRestaurant);
-            var company = _context.Companies!.Include(c => c.Restaurants).FirstOrDefault(c => c.Id == restaurantCreate.CompanyId);
-            if (company != null)
-            {
-                company.Restaurants!.Add(newRestaurant);
-            }
             _context.SaveChanges();
             return newRestaurant.Id;
         }
 
-        public RestaurantResponse UpdateRestaurant(Restaurant existingRestaurant, RestaurantCreate updatedRestaurant)
+        public RestaurantResponse UpdateRestaurant(int id, RestaurantCreate updatedRestaurant)
         {
-            existingRestaurant.Name = updatedRestaurant.Name;
-            existingRestaurant.WebAddress = updatedRestaurant.WebAddress;
-            existingRestaurant.Phone = updatedRestaurant.Phone;
-            existingRestaurant.PostalCode = updatedRestaurant.PostalCode;
-            existingRestaurant.AddressDetails = updatedRestaurant.AddressDetails;
-
+            Restaurant existingRestaurant = GetRestaurantWithCategories(id);
+            existingRestaurant  = _restaurantConverter.Convert(existingRestaurant, updatedRestaurant);
             _context.Update(existingRestaurant);
             _context.SaveChanges();
-            return GetRestaurantResponse(existingRestaurant);
+            return _restaurantConverter.Convert(existingRestaurant);
         }
 
         public void DeleteRestaurantAndRelatedEntities(Restaurant restaurant)
         {
-            restaurant.StateId = 0;
+            restaurant!.StateId = 0;
             _context.Restaurants!.Update(restaurant);
 
             var categories = restaurant.Categories;
             if (categories != null)
             {
-                foreach (var category in categories)
+                foreach (Category category in categories)
                 {
                     _categoriesService.DeleteCategoryAndRelatedEntities(category);
                 }
@@ -106,35 +116,16 @@ namespace Qr_Menu_API.Services
             _context.SaveChanges();
         }
 
-        public RestaurantDetailedResponse GetRestaurantDetailedResponse(Restaurant restaurant)
+        public void DeleteRestaurantAndRelatedEntitiesById(int id)
         {
-            RestaurantDetailedResponse restaurantDetailedResponse = new()
-            {
-                Id = restaurant.Id,
-                Name = restaurant.Name,
-                WebAddress = restaurant.WebAddress,
-                Phone = restaurant.Phone,
-                PostalCode = restaurant.PostalCode,
-                AddressDetails = restaurant.AddressDetails,
-                RegisterDate = restaurant.RegisterDate,
-                StateResponse = new StateResponse
-                {
-                    Id = restaurant.StateId,
-                    Name = _context.States!.Find(restaurant.StateId)!.Name
-                },
-                CompanyId = restaurant.CompanyId,
-                CategoriesDetailed = new List<CategoryDetailedResponse>()
-            };
-            if (restaurant.Categories != null)
-            {
-                foreach (Category category in restaurant.Categories)
-                {
-                    CategoryDetailedResponse categoryDetailedResponse = _categoriesService.GetDetailedCategoryResponse(category);
-                    restaurantDetailedResponse.CategoriesDetailed.Add(categoryDetailedResponse);
-                }
-            }
-            
-            return restaurantDetailedResponse;
+            Restaurant restaurant = GetRestaurantWithCategoriesAndUsers(id);
+            DeleteRestaurantAndRelatedEntities(restaurant);
+        }
+
+        public RestaurantDetailedResponse GetRestaurantDetailedResponse(int id)
+        {
+            Restaurant restaurant = GetRestaurantWithCategories(id);
+            return _restaurantConverter.ConvertDetailed(restaurant);
         }
 
 

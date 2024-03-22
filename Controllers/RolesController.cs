@@ -52,6 +52,8 @@ namespace Qr_Menu_API.Controllers
             _rolesService.DeleteRole(identityRole);
             return Ok();
         }
+
+
     }
 }
 

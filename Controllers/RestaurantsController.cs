@@ -27,15 +27,32 @@ namespace Qr_Menu_API.Controllers
             _restaurantsService = restaurantsService;
         }
 
+        private bool RestaurantsIsNull()
+        {
+            return _context.Restaurants == null;
+        }
+
+        private bool RestaurantExists(int id)
+        {
+            return _context.Restaurants!
+                .Any(r => r.Id == id);
+        }
+
+        private bool CompanyExists(int id)
+        {
+            return _context.Companies!
+                .Any(r => r.Id == id);
+        }
+
         // GET: api/Restaurants
         [HttpGet]
         [Authorize]
         public ActionResult<IEnumerable<RestaurantResponse>> GetRestaurants()
         {
-          if (_context.Restaurants == null)
-          {
-              return NotFound();
-          }
+            if (RestaurantsIsNull())
+            {
+                return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
+            }
             return _restaurantsService.GetRestaurantsResponses();
         }
 
@@ -44,18 +61,16 @@ namespace Qr_Menu_API.Controllers
         [Authorize]
         public ActionResult<RestaurantResponse> GetRestaurant(int id)
         {
-          if (_context.Restaurants == null)
-          {
-              return NotFound();
-          }
-            var restaurant = _context.Restaurants.Include(r => r.Categories).FirstOrDefault(r => r.Id == id);
-
-            if (restaurant == null)
+            if (RestaurantsIsNull())
             {
-                return NotFound();
+                return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
+            }
+            if (!RestaurantExists(id))
+            {
+                return NotFound("Restaurant not found with this id: " + id);
             }
 
-            return _restaurantsService.GetRestaurantResponse(restaurant);
+            return _restaurantsService.GetRestaurantResponse(id);
         }
 
         // PUT: api/Restaurants/5
@@ -63,16 +78,15 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult<RestaurantResponse> PutRestaurant(int id, RestaurantCreate updatedRestaurant)
         {
-            if (_context.Restaurants == null)
+            if (RestaurantsIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
             }
-            var existingRestaurant = _context.Restaurants.Include(r => r.Categories).FirstOrDefault(r => r.Id == id);
-            if (existingRestaurant == null)
+            if (!RestaurantExists(id))
             {
-                return BadRequest();
+                return NotFound("Restaurant not found with this id: " + id);
             }
-            return _restaurantsService.UpdateRestaurant(existingRestaurant, updatedRestaurant);
+            return _restaurantsService.UpdateRestaurant(id, updatedRestaurant);
         }
 
         // POST: api/Restaurants
@@ -80,15 +94,15 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult<int> PostRestaurant(RestaurantCreate restaurantCreate)
         {
-            if (_context.Restaurants == null)
+            if (RestaurantsIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
             }
-            if (_context.States == null)
+            if (!CompanyExists(restaurantCreate.CompanyId))
             {
-                return Problem("Entity set 'ApplicationContext.States'  is null.");
+                return NotFound("Company not found with this id: " + restaurantCreate.CompanyId);
             }
-            return _restaurantsService.CreateRestaurant(restaurantCreate);
+                return _restaurantsService.CreateRestaurant(restaurantCreate);
         }
 
         // DELETE: api/Restaurants/5
@@ -96,17 +110,15 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult DeleteRestaurant(int id)
         {
-            if (_context.Restaurants == null)
+            if (RestaurantsIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
             }
-            var restaurant = _context.Restaurants.Include(r => r.Categories).FirstOrDefault(r => r.Id == id);
-            if (restaurant == null)
+            if (!RestaurantExists(id))
             {
-                return NotFound();
+                return NotFound("Restaurant not found with this id: " + id);
             }
-
-            _restaurantsService.DeleteRestaurantAndRelatedEntities(restaurant);
+            _restaurantsService.DeleteRestaurantAndRelatedEntitiesById(id);
 
             //
             //
@@ -120,14 +132,11 @@ namespace Qr_Menu_API.Controllers
         [HttpGet("Detailed/{id}")]
         public ActionResult<RestaurantDetailedResponse> GetDetailedRestaurant(int id)
         {
-            var restaurant = _context.Restaurants!.Include(r => r.Categories)!
-                .ThenInclude(c => c.Foods)
-                .FirstOrDefault(r => r.Id == id);
-            if (restaurant == null)
+            if (!RestaurantExists(id))
             {
-                return NotFound();
+                return NotFound("Restaurant not found with this id: " + id);
             }
-            return _restaurantsService.GetRestaurantDetailedResponse(restaurant);
+            return _restaurantsService.GetRestaurantDetailedResponse(id);
         }
 
     }

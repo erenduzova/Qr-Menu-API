@@ -25,13 +25,23 @@ namespace Qr_Menu_API.Controllers
             _roleManager = roleManager;
         }
 
+        private bool UsersIsNull()
+        {
+            return _signInManager.UserManager.Users == null;
+        }
+
+        private bool UserExists(string id)
+        {
+            return _signInManager.UserManager.Users.Any(u => u.Id == id);
+        }
+
         // GET: api/Users
         [HttpGet]
         public ActionResult<List<ApplicationUserResponse>> GetUsers()
         {
-            if (_signInManager.UserManager.Users == null)
+            if (UsersIsNull())
             {
-                return NotFound();
+                return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
             }
             return _usersService.GetApplicationUserResponses();
         }
@@ -40,35 +50,36 @@ namespace Qr_Menu_API.Controllers
         [HttpGet("{id}")]
         public ActionResult<ApplicationUserResponse> GetApplicationUser(string id)
         {
-            if (_signInManager.UserManager.Users == null)
+            if (UsersIsNull())
             {
-                return NotFound();
+                return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
             }
-            ApplicationUser? applicationUser = _signInManager.UserManager.FindByIdAsync(id).Result;
-            if (applicationUser == null)
+            if (!UserExists(id))
             {
-                return NotFound();
+                return NotFound("User not found with this id: " + id);
             }
-            return _usersService.GetApplicationUserResponse(applicationUser);
+            return _usersService.GetApplicationUserResponse(id);
         }
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
         public ActionResult<ApplicationUserResponse> PutApplicationUser(string id, ApplicationUserCreate updatedApplicationUser)
         {
-            ApplicationUser? existingApplicationUser = _signInManager.UserManager.FindByIdAsync(id).Result;
-            if (existingApplicationUser == null)
+            if (!UserExists(id))
             {
-                return NotFound();
+                return NotFound("User not found with this id: " + id);
             }
-            
-            return _usersService.UpdateApplicationUser(existingApplicationUser, updatedApplicationUser);
+            return _usersService.UpdateApplicationUser(id, updatedApplicationUser);
         }
 
         // POST: api/Users
         [HttpPost]
-        public string PostApplicationUser(ApplicationUserCreate applicationUserCreate, string password)
+        public ActionResult<string> PostApplicationUser(ApplicationUserCreate applicationUserCreate, string password)
         {
+            if (UsersIsNull())
+            {
+                return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
+            }
             return _usersService.CreateApplicationUser(applicationUserCreate, password);
         }
 
@@ -76,20 +87,22 @@ namespace Qr_Menu_API.Controllers
         [HttpDelete("{id}")]
         public ActionResult DeleteApplicationUser(string id)
         {
-            ApplicationUser? applicationUser = _signInManager.UserManager.FindByIdAsync(id).Result;
-            if (applicationUser == null)
+            if (UsersIsNull())
             {
-                return NotFound();
+                return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
             }
-            _usersService.DeleteApplicationUserAndRelatedEntities(applicationUser);
+            if (!UserExists(id))
+            {
+                return NotFound("User not found with this id: " + id);
+            }
+            _usersService.DeleteApplicationUserAndRelatedEntitiesById(id);
             return Ok();
         }
 
         // api/Users/LogIn
         [HttpPost("LogIn")]
         public ActionResult LogIn(string userName, string password)
-        {
-            ApplicationUser? applicationUser = _signInManager.UserManager.FindByNameAsync(userName).Result;
+        {ApplicationUser? applicationUser = _signInManager.UserManager.FindByNameAsync(userName).Result;
             if (applicationUser == null)
             {
                 return NotFound();

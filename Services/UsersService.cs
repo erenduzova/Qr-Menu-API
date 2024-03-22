@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Qr_Menu_API.Data;
+using Qr_Menu_API.DTOs.Converter;
 using Qr_Menu_API.DTOs.CreateDTOs;
 using Qr_Menu_API.DTOs.ResponseDTOs;
 using Qr_Menu_API.Models;
@@ -14,70 +15,54 @@ namespace Qr_Menu_API.Services
         private readonly ApplicationContext _context;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RolesService _rolesService;
+        private readonly UserConverter _userConverter;
 
-        public UsersService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, RolesService rolesService)
+        public UsersService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, RolesService rolesService, UserConverter userConverter)
         {
             _context = context;
             _signInManager = signInManager;
             _rolesService = rolesService;
+            _userConverter = userConverter;
+        }
+        private ApplicationUser GetApplicationUser(string userId)
+        {
+            return _context.Users!
+                .Include(u => u.State)
+                .First(u => u.Id == userId);
         }
 
-        public ApplicationUserResponse GetApplicationUserResponse(ApplicationUser applicationUser)
+        private List<ApplicationUser> GetApplicationUsers()
         {
-            ApplicationUserResponse applicationUserResponse = new()
-            {
-                Id = applicationUser.Id,
-                UserName = applicationUser.UserName,
-                Name = applicationUser.Name,
-                Email = applicationUser.Email,
-                PhoneNumber = applicationUser.PhoneNumber,
-                RegisterDate = applicationUser.RegisterDate,
-                CompanyId = applicationUser.CompanyId,
-                StateResponse = new StateResponse
-                {
-                    Id = applicationUser.StateId,
-                    Name = _context.States!.Find(applicationUser.StateId)!.Name
-                }
-            };
-            return applicationUserResponse;
+            return _context.Users!
+                .Include(u => u.State)
+                .ToList();
+        }
+
+        public ApplicationUserResponse GetApplicationUserResponse(string id)
+        {
+            ApplicationUser applicationUser = GetApplicationUser(id);
+            return _userConverter.Convert(applicationUser);
         }
 
         public List<ApplicationUserResponse> GetApplicationUserResponses()
         {
-            List<ApplicationUser> applicationUsers = _context.Users.ToList();
-            List<ApplicationUserResponse> applicationUserResponses = new();
-            applicationUsers.ForEach(applicationUser =>
-            {
-                applicationUserResponses.Add(GetApplicationUserResponse(applicationUser));
-            });
-            return applicationUserResponses;
+            List<ApplicationUser> applicationUsers = GetApplicationUsers();
+            return _userConverter.Convert(applicationUsers);
         }
 
         public string CreateApplicationUser(ApplicationUserCreate applicationUserCreate, string password)
         {
-            ApplicationUser newApplicationUser = new()
-            {
-                UserName = applicationUserCreate.UserName,
-                Name = applicationUserCreate.Name,
-                Email = applicationUserCreate.Email,
-                PhoneNumber = applicationUserCreate.PhoneNumber,
-                RegisterDate = DateTime.Now,
-                CompanyId = applicationUserCreate.CompanyId,
-                StateId = (byte)1,
-            };
+            ApplicationUser newApplicationUser = _userConverter.Convert(applicationUserCreate);
             _signInManager.UserManager.CreateAsync(newApplicationUser, password).Wait();
             return newApplicationUser.Id;
         }
 
-        public ApplicationUserResponse UpdateApplicationUser(ApplicationUser existingApplicationUser, ApplicationUserCreate updatedApplicationUser)
+        public ApplicationUserResponse UpdateApplicationUser(string id, ApplicationUserCreate updatedApplicationUser)
         {
-            existingApplicationUser!.UserName = updatedApplicationUser.UserName;
-            existingApplicationUser.Email = updatedApplicationUser.Email;
-            existingApplicationUser.Name = updatedApplicationUser.Name;
-            existingApplicationUser.PhoneNumber = updatedApplicationUser.PhoneNumber;
-
+            ApplicationUser existingApplicationUser = GetApplicationUser(id);
+            existingApplicationUser = _userConverter.Convert(existingApplicationUser, updatedApplicationUser);
             _signInManager.UserManager.UpdateAsync(existingApplicationUser).Wait();
-            return GetApplicationUserResponse(existingApplicationUser);
+            return _userConverter.Convert(existingApplicationUser);
         }
 
         public void DeleteApplicationUserAndRelatedEntities(ApplicationUser applicationUser)
@@ -85,6 +70,12 @@ namespace Qr_Menu_API.Services
             applicationUser.StateId = 0;
             _signInManager.UserManager.UpdateAsync(applicationUser).Wait();
             _signInManager.SignOutAsync().Wait();
+        }
+
+        public void DeleteApplicationUserAndRelatedEntitiesById(string id)
+        {
+            ApplicationUser applicationUser = _context.Users.First(u => u.Id == id);
+            DeleteApplicationUserAndRelatedEntities(applicationUser);
         }
 
         public Microsoft.AspNetCore.Identity.SignInResult LogIn(ApplicationUser applicationUser, string password)

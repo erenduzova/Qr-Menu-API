@@ -101,12 +101,11 @@ namespace Qr_Menu_API.Services
             existingCompany = _companyConverter.Convert(existingCompany, updatedCompany);
             _context.Update(existingCompany);
             _context.SaveChanges();
-            return GetCompanyResponse(existingCompany.Id);
+            return _companyConverter.Convert(existingCompany);
         }
 
-        public void DeleteCompanyAndRelatedEntities(int companyId)
+        public void DeleteCompanyAndRelatedEntities(Company company)
         {
-            Company company = GetCompanyWithRestaurantsAndUsers(companyId);
 
             company.StateId = 0;
             _context.Companies!.Update(company);
@@ -132,5 +131,10 @@ namespace Qr_Menu_API.Services
             _context.SaveChanges();
         }
 
+        public void DeleteCompanyAndRelatedEntitiesById(int companyId)
+        {
+            Company company = GetCompanyWithRestaurantsAndUsers(companyId);
+            DeleteCompanyAndRelatedEntities(company);
+        }
     }
 }

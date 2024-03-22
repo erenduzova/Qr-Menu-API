@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NuGet.Packaging.Signing;
 using Qr_Menu_API.Data;
+using Qr_Menu_API.DTOs.Converter;
 using Qr_Menu_API.DTOs.CreateDTOs;
 using Qr_Menu_API.DTOs.DetailedResponseDTOs;
 using Qr_Menu_API.DTOs.ResponseDTOs;
@@ -13,69 +14,72 @@ namespace Qr_Menu_API.Services
     {
         private readonly ApplicationContext _context;
         private readonly FoodsService _foodsService;
+        private readonly CategoryConverter _categoryConverter;
 
-        public CategoriesService(ApplicationContext context, FoodsService foodsService)
+        public CategoriesService(ApplicationContext context, FoodsService foodsService, CategoryConverter categoryConverter)
         {
             _context = context;
             _foodsService = foodsService;
+            _categoryConverter = categoryConverter;
         }
-        public CategoryResponse GetCategoryResponse(Category category)
+
+        private Category GetCategory(int categoryId)
         {
-            CategoryResponse categoryResponse = new()
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Description = category.Description,
-                RestaurantId = category.RestaurantId,
-                StateResponse = new StateResponse
-                {
-                    Id = category.StateId,
-                    Name = _context.States!.Find(category.StateId)!.Name
-                },
-                FoodIds = category.Foods?.Select(f => f.Id).ToList()
-            };
-            return categoryResponse;
+            return _context.Categories!
+                .Include(c => c.State)
+                .First(c => c.Id == categoryId);
+        }
+
+        private List<Category> GetCategories()
+        {
+            return _context.Categories!
+                .Include(c => c.State)
+                .ToList();
+        }
+
+        private Category GetCategoryWithFoods(int categoryId)
+        {
+            return _context.Categories!
+                .Include(c => c.State)
+                .Include(c => c.Foods)
+                .First(c => c.Id == categoryId);
+        }
+
+        private List<Category> GetCategoriesWithFoods()
+        {
+            return _context.Categories!
+                .Include(c => c.State)
+                .Include(c => c.Foods)
+                .ToList();
+        }
+
+        public CategoryResponse GetCategoryResponse(int id)
+        {
+            Category foundCategory = GetCategoryWithFoods(id);
+            return _categoryConverter.Convert(foundCategory);
         }
 
         public List<CategoryResponse> GetCategoriesResponses()
         {
-            List<Category> categories = _context.Categories!.Include(c => c.Foods).ToList();
-            List<CategoryResponse> categoriesResponses = new();
-            categories.ForEach(category =>
-            {
-                categoriesResponses.Add(GetCategoryResponse(category));
-            });
-            return categoriesResponses;
+            List<Category> categories = GetCategoriesWithFoods();
+            return _categoryConverter.Convert(categories);
         }
 
         public int CreateCategory(CategoryCreate categoryCreate)
         {
-            Category newCategory = new()
-            {
-                Name = categoryCreate.Name,
-                Description = categoryCreate.Description,
-                RestaurantId = categoryCreate.RestaurantId,
-                StateId = (byte)1,
-                Foods = new List<Food>()
-            };
-
+            Category newCategory = _categoryConverter.Convert(categoryCreate);
             _context.Categories!.Add(newCategory);
-            var restaurant = _context.Restaurants!.Include(r => r.Categories).FirstOrDefault(r => r.Id == categoryCreate.RestaurantId);
-            if (restaurant != null)
-            {
-                restaurant.Categories!.Add(newCategory);
-            }
             _context.SaveChanges();
             return newCategory.Id;
         }
 
-        public CategoryResponse UpdateCategory(Category existingCategory, CategoryCreate updatedCategory)
+        public CategoryResponse UpdateCategory(int id, CategoryCreate updatedCategory)
         {
-            existingCategory.Name = updatedCategory.Name;
-            existingCategory.Description = updatedCategory.Description;
+            Category existingCategory = GetCategoryWithFoods(id);
+            existingCategory = _categoryConverter.Convert(existingCategory, updatedCategory);
             _context.Update(existingCategory);
             _context.SaveChanges();
-            return GetCategoryResponse(existingCategory);
+            return _categoryConverter.Convert(existingCategory);
         }
 
         public void DeleteCategoryAndRelatedEntities(Category category)
@@ -93,30 +97,16 @@ namespace Qr_Menu_API.Services
             _context.SaveChanges();
         }
 
-        public CategoryDetailedResponse GetDetailedCategoryResponse(Category category)
+        public void DeleteCategoryAndRelatedEntitiesById(int id)
         {
-            CategoryDetailedResponse categoryDetailedResponse = new()
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Description = category.Description,
-                RestaurantId = category.RestaurantId,
-                StateResponse = new StateResponse
-                {
-                    Id = category.StateId,
-                    Name = _context.States!.Find(category.StateId)!.Name
-                },
-                FoodsDetailed = new List<FoodResponse>()
-            };
-            if (category.Foods != null)
-            {
-                foreach (Food food in category.Foods)
-                {
-                    FoodResponse foodDetailedResponse = _foodsService.GetFoodResponse(food);
-                    categoryDetailedResponse.FoodsDetailed.Add(foodDetailedResponse);
-                }
-            }
-            return categoryDetailedResponse;
+            Category category = GetCategoryWithFoods(id);
+            DeleteCategoryAndRelatedEntities(category);
+        }
+
+        public CategoryDetailedResponse GetDetailedCategoryResponse(int id)
+        {
+            Category category = GetCategoryWithFoods(id);
+            return _categoryConverter.ConvertDetailed(category);
         }
     }
 }

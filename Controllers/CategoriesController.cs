@@ -27,12 +27,23 @@ namespace Qr_Menu_API.Controllers
             _categoriesService = categoriesService;
         }
 
+        private bool CategoriesIsNull()
+        {
+            return _context.Categories == null;
+        }
+
+        private bool CategoryExists(int id)
+        {
+            return _context.Categories!
+                .Any(c => c.Id == id);
+        }
+
         // GET: api/Categories
         [HttpGet]
         [Authorize]
         public ActionResult<IEnumerable<CategoryResponse>> GetCategories()
         {
-            if (_context.Categories == null)
+            if (CategoriesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Categories'  is null.");
             }
@@ -44,18 +55,15 @@ namespace Qr_Menu_API.Controllers
         [Authorize]
         public ActionResult<CategoryResponse> GetCategory(int id)
         {
-            if (_context.Categories == null)
+            if (CategoriesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Categories'  is null.");
             }
-            var category = _context.Categories.Include(c => c.Foods).FirstOrDefault(c => c.Id == id);
-
-            if (category == null)
+            if (!CategoryExists(id))
             {
-                return NotFound();
+                return NotFound("Category not found with this id: " + id);
             }
-
-            return _categoriesService.GetCategoryResponse(category);
+            return _categoriesService.GetCategoryResponse(id);
         }
 
         // PUT: api/Categories/5
@@ -63,16 +71,15 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<CategoryResponse> PutCategory(int id, CategoryCreate updatedCategory)
         {
-            if (_context.Categories == null)
+            if (CategoriesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Categories'  is null.");
             }
-            var existingCategory = _context.Categories.Include(c => c.Foods).FirstOrDefault(c => c.Id == id);
-            if (existingCategory == null)
+            if (!CategoryExists(id))
             {
-                return BadRequest();
+                return NotFound("Category not found with this id: " + id);
             }
-            return _categoriesService.UpdateCategory(existingCategory, updatedCategory);
+            return _categoriesService.UpdateCategory(id, updatedCategory);
         }
 
         // POST: api/Categories
@@ -80,13 +87,9 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<int> PostCategory(CategoryCreate categoryCreate)
         {
-            if (_context.Categories == null)
+            if (CategoriesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Categories'  is null.");
-            }
-            if (_context.States == null)
-            {
-                return Problem("Entity set 'ApplicationContext.States'  is null.");
             }
             return _categoriesService.CreateCategory(categoryCreate);
         }
@@ -96,16 +99,15 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult DeleteCategory(int id)
         {
-            if (_context.Categories == null)
+            if (CategoriesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Categories'  is null.");
             }
-            var category = _context.Categories.Include(c => c.Foods).FirstOrDefault(c => c.Id == id);
-            if (category == null)
+            if (!CategoryExists(id))
             {
-                return NotFound();
+                return NotFound("Category not found with this id: " + id);
             }
-            _categoriesService.DeleteCategoryAndRelatedEntities(category);
+            _categoriesService.DeleteCategoryAndRelatedEntitiesById(id);
             return Ok();
         }
 

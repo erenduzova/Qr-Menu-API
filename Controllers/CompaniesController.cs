@@ -109,7 +109,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound("Company not found with this id: " + id);
             }
-            _companiesService.DeleteCompanyAndRelatedEntities(id);
+            _companiesService.DeleteCompanyAndRelatedEntitiesById(id);
             return Ok();
         }
 
