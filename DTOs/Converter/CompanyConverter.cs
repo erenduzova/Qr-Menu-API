@@ -8,6 +8,13 @@ namespace Qr_Menu_API.DTOs.Converter
 {
 	public class CompanyConverter
 	{
+        private readonly StateConverter _stateConverter;
+
+        public CompanyConverter(StateConverter stateConverter)
+        {
+            _stateConverter = stateConverter;
+        }
+
 		public Company Convert(CompanyCreate companyCreate)
 		{
             Company company = new()
@@ -47,7 +54,7 @@ namespace Qr_Menu_API.DTOs.Converter
                 TaxNumber = company.TaxNumber,
                 WebAddress = company.WebAddress,
                 ParentCompanyId = company.ParentCompanyId,
-                StateResponse = StateConverter.Convert(company.State!),
+                StateResponse = _stateConverter.Convert(company.State!),
                 RestaurantIds = company.Restaurants?.Select(r => r.Id).ToList()
             };
 

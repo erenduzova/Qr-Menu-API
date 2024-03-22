@@ -8,7 +8,7 @@ namespace Qr_Menu_API.DTOs.Converter
 {
 	public class StateConverter
     {
-		public static StateResponse Convert(State state)
+		public StateResponse Convert(State state)
         {
             StateResponse stateResponse = new()
             {
