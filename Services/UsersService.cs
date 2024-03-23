@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,11 +25,17 @@ namespace Qr_Menu_API.Services
             _rolesService = rolesService;
             _userConverter = userConverter;
         }
-        private ApplicationUser GetApplicationUser(string userId)
+        private ApplicationUser GetApplicationUserById(string userId)
         {
             return _context.Users!
                 .Include(u => u.State)
                 .First(u => u.Id == userId);
+        }
+        private ApplicationUser GetApplicationUserByUserName(string userName)
+        {
+            return _context.Users!
+                .Include(u => u.State)
+                .First(u => u.UserName == userName);
         }
 
         private List<ApplicationUser> GetApplicationUsers()
@@ -40,7 +47,7 @@ namespace Qr_Menu_API.Services
 
         public ApplicationUserResponse GetApplicationUserResponse(string id)
         {
-            ApplicationUser applicationUser = GetApplicationUser(id);
+            ApplicationUser applicationUser = GetApplicationUserById(id);
             return _userConverter.Convert(applicationUser);
         }
 
@@ -59,7 +66,7 @@ namespace Qr_Menu_API.Services
 
         public ApplicationUserResponse UpdateApplicationUser(string id, ApplicationUserCreate updatedApplicationUser)
         {
-            ApplicationUser existingApplicationUser = GetApplicationUser(id);
+            ApplicationUser existingApplicationUser = GetApplicationUserById(id);
             existingApplicationUser = _userConverter.Convert(existingApplicationUser, updatedApplicationUser);
             _signInManager.UserManager.UpdateAsync(existingApplicationUser).Wait();
             return _userConverter.Convert(existingApplicationUser);
@@ -74,33 +81,58 @@ namespace Qr_Menu_API.Services
 
         public void DeleteApplicationUserAndRelatedEntitiesById(string id)
         {
-            ApplicationUser applicationUser = _context.Users.First(u => u.Id == id);
+            ApplicationUser applicationUser = GetApplicationUserById(id);
             DeleteApplicationUserAndRelatedEntities(applicationUser);
         }
 
-        public Microsoft.AspNetCore.Identity.SignInResult LogIn(ApplicationUser applicationUser, string password)
+        public Microsoft.AspNetCore.Identity.SignInResult LogIn(string userName, string password)
         {
-         return _signInManager.PasswordSignInAsync(applicationUser, password, false, false).Result; 
+            ApplicationUser applicationUser = GetApplicationUserByUserName(userName);
+            if (applicationUser.StateId != 1)
+            {
+                return Microsoft.AspNetCore.Identity.SignInResult.NotAllowed;
+            }
+            return _signInManager.PasswordSignInAsync(applicationUser, password, false, false).Result; 
         }
 
-        public string ResetPasswordGenerateToken(ApplicationUser applicationUser)
+        public string ResetPasswordGenerateToken(string userName)
         {
+            ApplicationUser applicationUser = GetApplicationUserByUserName(userName);
             return _signInManager.UserManager.GeneratePasswordResetTokenAsync(applicationUser).Result;
         }
 
-        public IdentityResult ResetPasswordValidateToken(ApplicationUser applicationUser, string token, string newPassword)
+        public IdentityResult ResetPasswordValidateToken(string userName, string token, string newPassword)
         {
+            ApplicationUser applicationUser = GetApplicationUserByUserName(userName);
             return _signInManager.UserManager.ResetPasswordAsync(applicationUser, token, newPassword).Result; 
         }
 
-        public void AssignRole(ApplicationUser applicationUser,IdentityRole identityRole)
+        public bool AssignRole(string userId, string roleId)
         {
+            ApplicationUser applicationUser = GetApplicationUserById(userId);
+            var identityRole = _rolesService.GetRoleById(roleId);
+            if (identityRole == null)
+            {
+                return false;
+            }
             _signInManager.UserManager.AddToRoleAsync(applicationUser, identityRole.Name!).Wait();
+            return true;
         }
 
-        public void UnassignRole(ApplicationUser applicationUser, IdentityRole identityRole)
+        public bool UnassignRole(string userId, string roleId)
         {
+            ApplicationUser applicationUser = GetApplicationUserById(userId);
+            var identityRole = _rolesService.GetRoleById(roleId);
+            if (identityRole == null)
+            {
+                return false;
+            }
+            if (_signInManager.UserManager.IsInRoleAsync(applicationUser, identityRole.Name!).Result)
+            {
+                return false;
+            }
             _signInManager.UserManager.RemoveFromRoleAsync(applicationUser, identityRole.Name!).Wait();
+            return true;
         }
     }
 }

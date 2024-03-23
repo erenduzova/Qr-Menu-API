@@ -16,13 +16,11 @@ namespace Qr_Menu_API.Controllers
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UsersService _usersService;
-        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public UsersController(SignInManager<ApplicationUser> signInManager, UsersService usersService, RoleManager<IdentityRole> roleManager)
+        public UsersController(SignInManager<ApplicationUser> signInManager, UsersService usersService)
         {
             _signInManager = signInManager;
             _usersService = usersService;
-            _roleManager = roleManager;
         }
 
         private bool UsersIsNull()
@@ -30,9 +28,14 @@ namespace Qr_Menu_API.Controllers
             return _signInManager.UserManager.Users == null;
         }
 
-        private bool UserExists(string id)
+        private bool UserExistsById(string id)
         {
             return _signInManager.UserManager.Users.Any(u => u.Id == id);
+        }
+
+        private bool UserExistsByUserName(string userName)
+        {
+            return _signInManager.UserManager.Users.Any(u => u.UserName == userName);
         }
 
         // GET: api/Users
@@ -54,7 +57,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
             }
-            if (!UserExists(id))
+            if (!UserExistsById(id))
             {
                 return NotFound("User not found with this id: " + id);
             }
@@ -65,7 +68,7 @@ namespace Qr_Menu_API.Controllers
         [HttpPut("{id}")]
         public ActionResult<ApplicationUserResponse> PutApplicationUser(string id, ApplicationUserCreate updatedApplicationUser)
         {
-            if (!UserExists(id))
+            if (!UserExistsById(id))
             {
                 return NotFound("User not found with this id: " + id);
             }
@@ -91,7 +94,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
             }
-            if (!UserExists(id))
+            if (!UserExistsById(id))
             {
                 return NotFound("User not found with this id: " + id);
             }
@@ -102,18 +105,33 @@ namespace Qr_Menu_API.Controllers
         // api/Users/LogIn
         [HttpPost("LogIn")]
         public ActionResult LogIn(string userName, string password)
-        {ApplicationUser? applicationUser = _signInManager.UserManager.FindByNameAsync(userName).Result;
-            if (applicationUser == null)
+        {
+            if (!UserExistsByUserName(userName))
             {
-                return NotFound();
+                return NotFound("User not found with this user name: " + userName);
             }
-            Microsoft.AspNetCore.Identity.SignInResult signInResult = _usersService.LogIn(applicationUser, password);
+
+            Microsoft.AspNetCore.Identity.SignInResult signInResult = _usersService.LogIn(userName, password);
+
             if (signInResult.Succeeded)
             {
                 return Ok();
-            } else
+            }
+            else if (signInResult.IsLockedOut)
             {
-                return BadRequest();
+                return BadRequest("Your account is locked out. Please try again later.");
+            }
+            else if (signInResult.IsNotAllowed)
+            {
+                return BadRequest("Login is not allowed for this user.");
+            }
+            else if (signInResult.RequiresTwoFactor)
+            {
+                return BadRequest("Two-factor authentication is required for this user.");
+            }
+            else
+            {
+                return BadRequest("An unknown error occurred during login.");
             }
         }
 
@@ -133,26 +151,24 @@ namespace Qr_Menu_API.Controllers
 
         // api/Users/ResetPasswordGenerateToken
         [HttpPost("ResetPasswordGenerateToken")]
-        public string? ResetPasswordGenerateToken(string userName)
+        public ActionResult<string>? ResetPasswordGenerateToken(string userName)
         {
-            ApplicationUser? applicationUser = _signInManager.UserManager.FindByNameAsync(userName).Result;
-            if (applicationUser == null)
+            if (!UserExistsByUserName(userName))
             {
-                return null;
+                return NotFound("User not found with this user name: " + userName);
             }
-            return _usersService.ResetPasswordGenerateToken(applicationUser);
+            return _usersService.ResetPasswordGenerateToken(userName);
         }
 
         // api/Users/ResetPasswordValidateToken
         [HttpPost("ResetPasswordValidateToken")]
         public ActionResult<String> ResetPasswordValidateToken(string userName, string token, string newPassword)
         {
-            ApplicationUser? applicationUser = _signInManager.UserManager.FindByNameAsync(userName).Result;
-            if (applicationUser == null)
+            if (!UserExistsByUserName(userName))
             {
-                return NotFound();
+                return NotFound("User not found with this user name: " + userName);
             }
-            IdentityResult identityResult = _usersService.ResetPasswordValidateToken(applicationUser, token, newPassword);
+            IdentityResult identityResult = _usersService.ResetPasswordValidateToken(userName, token, newPassword);
             if (identityResult.Succeeded == false)
             {
                 return identityResult.Errors.First().Description;
@@ -164,41 +180,38 @@ namespace Qr_Menu_API.Controllers
         [HttpPost("AssignRole")]
         public ActionResult AssignRole(string userId, string roleId)
         {
-            ApplicationUser? applicationUser = _signInManager.UserManager.FindByIdAsync(userId).Result;
-            if (applicationUser == null)
+            if (UsersIsNull())
             {
-                return NotFound();
+                return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
             }
-            IdentityRole? identityRole = _roleManager.FindByIdAsync(roleId).Result;
-            if (identityRole == null)
+            if (!UserExistsById(userId))
             {
-                return NotFound();
+                return NotFound("User not found with this id: " + userId);
             }
-            _usersService.AssignRole(applicationUser, identityRole);
-            return Ok();
-                
+            if (_usersService.AssignRole(userId, roleId))
+            {
+                return Ok();
+            }
+            return NotFound("Role not found with this id: " + roleId);
         }
 
         // api/Users/UnassignRole
         [HttpPut("UnassignRole")]
         public ActionResult UnassignRole(string userId, string roleId)
         {
-            ApplicationUser? applicationUser = _signInManager.UserManager.FindByIdAsync(userId).Result;
-            if (applicationUser == null)
+            if (UsersIsNull())
             {
-                return NotFound();
+                return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
             }
-            IdentityRole? identityRole = _roleManager.FindByIdAsync(roleId).Result;
-            if (identityRole == null)
+            if (!UserExistsById(userId))
             {
-                return NotFound();
+                return NotFound("User not found with this id: " + userId);
             }
-            if (_signInManager.UserManager.IsInRoleAsync(applicationUser, identityRole.Name!).Result)
+            if (_usersService.UnassignRole(userId, roleId))
             {
-                return NotFound();
+                return Ok();
             }
-            _usersService.UnassignRole(applicationUser, identityRole);
-            return Ok();
+            return Problem("Error occured while removing role");
         }
     }
 }
