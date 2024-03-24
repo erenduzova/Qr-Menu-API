@@ -82,7 +82,8 @@ namespace Qr_Menu_API.Services
             {
                 _restaurantUsersService.DeleteRestaurantUsers(applicationUser.RestaurantUsers);
             }
-            _signInManager.SignOutAsync().Wait();
+            IList<string> roles = _signInManager.UserManager.GetRolesAsync(applicationUser).Result;
+            _signInManager.UserManager.RemoveFromRolesAsync(applicationUser, roles).Wait();
         }
 
         public void DeleteApplicationUserAndRelatedEntitiesById(string id)
