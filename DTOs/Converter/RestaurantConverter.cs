@@ -32,7 +32,8 @@ namespace Qr_Menu_API.DTOs.Converter
                 AddressDetails = restaurantCreate.AddressDetails,
                 RegisterDate = DateTime.Now,
                 StateId = (byte)1,
-                Categories = new List<Category>()
+                Categories = new List<Category>(),
+                RestaurantUsers = new List<RestaurantUser>()
             };
             return newRestaurant;
 		}

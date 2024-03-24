@@ -26,6 +26,7 @@ namespace Qr_Menu_API.DTOs.Converter
                 RegisterDate = DateTime.Now,
                 CompanyId = applicationUserCreate.CompanyId,
                 StateId = (byte)1,
+                RestaurantUsers = new List<RestaurantUser>()
             };
             return newApplicationUser;
         }
