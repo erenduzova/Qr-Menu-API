@@ -47,6 +47,14 @@ namespace Qr_Menu_API.Services
                 .First(r => r.Id == restaurantId);
         }
 
+        private Restaurant GetRestaurantAndRelatedEntitesWithActiveState(int restaurantId)
+        {
+            return _context.Restaurants!
+                .Include(r => r.Categories!.Where(c => c.StateId == 1)
+                .Select(c => c.Foods!.Where(f => f.StateId == 1)))
+                .First(r => r.Id == restaurantId);
+        }
+
         private List<Restaurant> GetRestaurantsWithCategories()
         {
             return _context.Restaurants!
@@ -124,6 +132,10 @@ namespace Qr_Menu_API.Services
             return _restaurantConverter.ConvertDetailed(restaurant);
         }
 
-
+        public ActionResult<RestaurantDetailedResponse> GetRestaurantMenu(int id)
+        {
+            Restaurant restaurant = GetRestaurantAndRelatedEntitesWithActiveState(id);
+            return _restaurantConverter.ConvertDetailed(restaurant);
+        }
     }
 }

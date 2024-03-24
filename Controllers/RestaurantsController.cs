@@ -135,5 +135,17 @@ namespace Qr_Menu_API.Controllers
             return _restaurantsService.GetRestaurantDetailedResponse(id);
         }
 
+        // Restaurant details and menu with only active state
+        // GET: api/Restaurants/Detailed/5
+        [HttpGet("Menu/{id}")]
+        public ActionResult<RestaurantDetailedResponse> GetRestaurantMenu(int id)
+        {
+            if (!RestaurantExists(id))
+            {
+                return NotFound("Restaurant not found with this id: " + id);
+            }
+            return _restaurantsService.GetRestaurantMenu(id);
+        }
+
     }
 }
