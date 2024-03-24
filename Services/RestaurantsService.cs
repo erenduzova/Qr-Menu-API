@@ -39,20 +39,37 @@ namespace Qr_Menu_API.Services
                 .ToList();
         }
 
-        private Restaurant GetRestaurantWithCategories(int restaurantId)
+        private Restaurant GetRestaurantWithRelatedEntitiesWithStates(int restaurantId)
         {
             return _context.Restaurants!
-                .Include(r => r.Categories)
-                .Include(r => r.State)
-                .First(r => r.Id == restaurantId);
+                 .Include(r => r.State)
+                 .Include(r => r.Categories)
+                     .ThenInclude(c => c.State)
+                 .Include(r => r.Categories)
+                     .ThenInclude(c => c.Foods)
+                         .ThenInclude(f => f.State)
+                 .First(r => r.Id == restaurantId);
         }
 
         private Restaurant GetRestaurantAndRelatedEntitesWithActiveState(int restaurantId)
         {
-            return _context.Restaurants!
-                .Include(r => r.Categories!.Where(c => c.StateId == 1)
-                .Select(c => c.Foods!.Where(f => f.StateId == 1)))
+            var restaurant = _context.Restaurants!
+                .Include(r => r.State)
+                .Include(r => r.Categories)
+                .ThenInclude(c => c.Foods)
                 .First(r => r.Id == restaurantId);
+
+            restaurant.Categories = restaurant.Categories?
+                .Where(c => c.StateId == 1)
+                .ToList();
+
+            foreach (var category in restaurant.Categories)
+            {
+                category.Foods = category.Foods?
+                    .Where(f => f.StateId == 1)
+                    .ToList();
+            }
+            return restaurant;
         }
 
         private List<Restaurant> GetRestaurantsWithCategories()
@@ -84,7 +101,7 @@ namespace Qr_Menu_API.Services
         }
         public RestaurantResponse GetRestaurantResponse(int id)
         {
-            Restaurant foundRestaurant = GetRestaurantWithCategories(id);
+            Restaurant foundRestaurant = GetRestaurantWithRelatedEntitiesWithStates(id);
             return _restaurantConverter.Convert(foundRestaurant);
         }
 
@@ -108,7 +125,7 @@ namespace Qr_Menu_API.Services
 
         public RestaurantResponse UpdateRestaurant(int id, RestaurantCreate updatedRestaurant)
         {
-            Restaurant existingRestaurant = GetRestaurantWithCategories(id);
+            Restaurant existingRestaurant = GetRestaurantWithRelatedEntitiesWithStates(id);
             existingRestaurant  = _restaurantConverter.Convert(existingRestaurant, updatedRestaurant);
             _context.Update(existingRestaurant);
             _context.SaveChanges();
@@ -143,7 +160,7 @@ namespace Qr_Menu_API.Services
 
         public RestaurantDetailedResponse GetRestaurantDetailedResponse(int id)
         {
-            Restaurant restaurant = GetRestaurantWithCategories(id);
+            Restaurant restaurant = GetRestaurantWithRelatedEntitiesWithStates(id);
             return _restaurantConverter.ConvertDetailed(restaurant);
         }
 
@@ -156,11 +173,12 @@ namespace Qr_Menu_API.Services
         public List<RestaurantUserResponse> GetRestaurantUsers(int id)
         {
             Restaurant restaurant = GetRestaurantWithRestaurantUsers(id);
+            
             if (restaurant.RestaurantUsers == null)
             {
                 return new List<RestaurantUserResponse>();
             }
-            return _restaurantUsersService.GetRestaurantUserResponses((List<RestaurantUser>)restaurant.RestaurantUsers!);
+            return _restaurantUsersService.GetRestaurantUserResponses(restaurant.RestaurantUsers.ToList());
         }
     }
 }
