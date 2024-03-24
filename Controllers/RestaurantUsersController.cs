@@ -40,7 +40,6 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/RestaurantUsers
         [HttpGet]
-        [Authorize]
         public ActionResult<List<RestaurantUserResponse>> GetRestaurantUsers()
         {
             if (RestaurantUsersIsNull())
@@ -52,7 +51,6 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/RestaurantUsers/5
         [HttpGet("{id}")]
-        [Authorize]
         public ActionResult<RestaurantUserResponse> GetRestaurantUser(int restaurantId, string userId)
         {
             if (RestaurantUsersIsNull())
@@ -68,7 +66,6 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/RestaurantUsers
         [HttpPost]
-        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<RestaurantUserResponse> PostRestaurantUser(RestaurantUserCreate restaurantUserCreate)
         {
             if (RestaurantUsersIsNull())
@@ -81,7 +78,6 @@ namespace Qr_Menu_API.Controllers
 
         // DELETE: api/RestaurantUsers/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrator,CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult DeleteRestaurantUser(int restaurantId, string userId)
         {
             if (RestaurantUsersIsNull())

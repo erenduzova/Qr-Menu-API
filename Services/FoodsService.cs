@@ -44,6 +44,12 @@ namespace Qr_Menu_API.Services
                 .First(c => c.Id == foodId);
         }
 
+        private bool CategoryExists(int id)
+        {
+            return _context.Categories!
+                .Any(c => c.Id == id && c.StateId != 0);
+        }
+
         public FoodResponse GetFoodResponse(int id)
         {
             Food foundFood = GetFood(id);
@@ -52,12 +58,16 @@ namespace Qr_Menu_API.Services
 
         public List<FoodResponse> GetFoodsResponses()
         {
-            List<Food> foods = _context.Foods!.ToList();
+            List<Food> foods = GetFoods();
             return _foodConverter.Convert(foods);
         }
 
         public int CreateFood(FoodCreate foodCreate)
         {
+            if (!CategoryExists(foodCreate.CategoryId))
+            {
+                return -1;
+            }
             Food newFood = _foodConverter.Convert(foodCreate);
             _context.Foods!.Add(newFood);
             _context.SaveChanges();

@@ -40,7 +40,6 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Categories
         [HttpGet]
-        [Authorize]
         public ActionResult<IEnumerable<CategoryResponse>> GetCategories()
         {
             if (CategoriesIsNull())
@@ -52,7 +51,6 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
-        [Authorize]
         public ActionResult<CategoryResponse> GetCategory(int id)
         {
             if (CategoriesIsNull())
@@ -68,7 +66,6 @@ namespace Qr_Menu_API.Controllers
 
         // PUT: api/Categories/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<CategoryResponse> PutCategory(int id, CategoryCreate updatedCategory)
         {
             if (CategoriesIsNull())
@@ -84,7 +81,6 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Categories
         [HttpPost]
-        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<int> PostCategory(CategoryCreate categoryCreate)
         {
             if (CategoriesIsNull())
@@ -96,7 +92,6 @@ namespace Qr_Menu_API.Controllers
 
         // DELETE: api/Categories/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult DeleteCategory(int id)
         {
             if (CategoriesIsNull())

@@ -40,7 +40,6 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Users
         [HttpGet]
-        [Authorize]
         public ActionResult<List<ApplicationUserResponse>> GetUsers()
         {
             if (UsersIsNull())
@@ -52,7 +51,6 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        [Authorize]
         public ActionResult<ApplicationUserResponse> GetApplicationUser(string id)
         {
             if (UsersIsNull())
@@ -68,7 +66,6 @@ namespace Qr_Menu_API.Controllers
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Administrator,CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult<ApplicationUserResponse> PutApplicationUser(string id, ApplicationUserCreate updatedApplicationUser)
         {
             if (!UserExistsById(id))
@@ -80,7 +77,6 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Users
         [HttpPost]
-        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult<string> PostApplicationUser(ApplicationUserCreate applicationUserCreate, string password)
         {
             if (UsersIsNull())
@@ -92,7 +88,6 @@ namespace Qr_Menu_API.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult DeleteApplicationUser(string id)
         {
             if (UsersIsNull())
@@ -183,7 +178,6 @@ namespace Qr_Menu_API.Controllers
 
         // api/Users/AssignRole
         [HttpPost("AssignRole")]
-        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult AssignRole(string userId, string roleId)
         {
             if (UsersIsNull())
@@ -203,7 +197,6 @@ namespace Qr_Menu_API.Controllers
 
         // api/Users/UnassignRole
         [HttpPut("UnassignRole")]
-        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult UnassignRole(string userId, string roleId)
         {
             if (UsersIsNull())

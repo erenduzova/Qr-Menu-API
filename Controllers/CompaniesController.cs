@@ -42,7 +42,6 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Companies
         [HttpGet]
-        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult<IEnumerable<CompanyResponse>> GetCompanies()
         {
             if (CompaniesIsNull())
@@ -54,7 +53,6 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Companies/5
         [HttpGet("{id}")]
-        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult<CompanyResponse> GetCompany(int id)
         {
             if (CompaniesIsNull())
@@ -70,7 +68,6 @@ namespace Qr_Menu_API.Controllers
 
         // PUT: api/Companies/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult<CompanyResponse> PutCompany(int id, CompanyCreate updatedCompany)
         {
             if (CompaniesIsNull())
@@ -86,7 +83,6 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Companies
         [HttpPost]
-        [Authorize(Roles = "Administrator")]
         public ActionResult<CompanyResponse> PostCompany(CompanyCreate companyCreate)
         {
             if (CompaniesIsNull())
@@ -98,7 +94,6 @@ namespace Qr_Menu_API.Controllers
 
         // DELETE: api/Companies/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrator")]
         public ActionResult DeleteCompany(int id)
         {
             if (CompaniesIsNull())

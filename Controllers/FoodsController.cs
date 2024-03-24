@@ -66,7 +66,6 @@ namespace Qr_Menu_API.Controllers
 
         // PUT: api/Foods/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<FoodResponse> PutFood(int id, FoodCreate updatedFood)
         {
             if (FoodsIsNull())
@@ -82,19 +81,22 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Foods
         [HttpPost]
-        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<int> PostFood(FoodCreate foodCreate)
         {
             if (FoodsIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Foods'  is null.");
             }
-            return _foodsService.CreateFood(foodCreate);
+            int newFoodId = _foodsService.CreateFood(foodCreate);
+            if (newFoodId == -1)
+            {
+                return BadRequest("Invalid categoryId provided.");
+            }
+            return Ok(newFoodId);
         }
 
         // DELETE: api/Foods/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult DeleteFood(int id)
         {
             if (FoodsIsNull())

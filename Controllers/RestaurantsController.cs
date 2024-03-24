@@ -46,7 +46,6 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Restaurants
         [HttpGet]
-        [Authorize]
         public ActionResult<IEnumerable<RestaurantResponse>> GetRestaurants()
         {
             if (RestaurantsIsNull())
@@ -58,7 +57,6 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Restaurants/5
         [HttpGet("{id}")]
-        [Authorize]
         public ActionResult<RestaurantResponse> GetRestaurant(int id)
         {
             if (RestaurantsIsNull())
@@ -75,7 +73,6 @@ namespace Qr_Menu_API.Controllers
 
         // PUT: api/Restaurants/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult<RestaurantResponse> PutRestaurant(int id, RestaurantCreate updatedRestaurant)
         {
             if (RestaurantsIsNull())
@@ -91,7 +88,6 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Restaurants
         [HttpPost]
-        [Authorize(Roles = "CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult<int> PostRestaurant(RestaurantCreate restaurantCreate)
         {
             if (RestaurantsIsNull())
@@ -107,7 +103,6 @@ namespace Qr_Menu_API.Controllers
 
         // DELETE: api/Restaurants/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult DeleteRestaurant(int id)
         {
             if (RestaurantsIsNull())
@@ -125,7 +120,6 @@ namespace Qr_Menu_API.Controllers
         // Restaurant details and menu with all states
         // GET: api/Restaurants/Detailed/5
         [HttpGet("Detailed/{id}")]
-        [Authorize(Roles = "Administrator,CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult<RestaurantDetailedResponse> GetDetailedRestaurant(int id)
         {
             if (!RestaurantExists(id))
