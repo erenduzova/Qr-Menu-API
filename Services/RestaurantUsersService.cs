@@ -18,15 +18,6 @@ namespace Qr_Menu_API.Services
             _context = context;
             _restaurantUserConverter = restaurantUserConverter;
         }
-
-        private List<RestaurantUser> GetRestaurantUsersByRestaurantId(int restaurantId)
-        {
-            return _context.RestaurantUsers!.Where(ru => ru.RestaurantId == restaurantId).ToList();
-        }
-        private List<RestaurantUser> GetRestaurantUsersByUserId(string userId)
-        {
-            return _context.RestaurantUsers!.Where(ru => ru.UserId == userId).ToList();
-        }
         private List<RestaurantUser> GetRestaurantUsers()
         {
             return _context.RestaurantUsers!.ToList();
@@ -35,13 +26,27 @@ namespace Qr_Menu_API.Services
         {
             return _context.RestaurantUsers!.First(ru => ru.RestaurantId == restaurantId && ru.UserId == userId);
         }
-
-        public RestaurantUserResponse AddRestaurantUser(RestaurantUserCreate restaurantUserCreate)
+        private bool RestaurantExists(int restaurantId)
         {
+            return _context.Restaurants!
+                .Any(r => r.Id == restaurantId && r.StateId != 0);
+        }
+        private bool UserExists(string userId)
+        {
+            return _context.Users!
+                .Any(r => r.Id == userId && r.StateId != 0);
+        }
+
+        public int AddRestaurantUser(RestaurantUserCreate restaurantUserCreate)
+        {
+            if (!RestaurantExists(restaurantUserCreate.RestaurantId) || !UserExists(restaurantUserCreate.UserId))
+            {
+                return -1;
+            }
             RestaurantUser restaurantUser = _restaurantUserConverter.Convert(restaurantUserCreate);
             _context.RestaurantUsers!.Add(restaurantUser);
             _context.SaveChanges();
-            return _restaurantUserConverter.Convert(restaurantUser);
+            return 1;
         }
 
         public List<RestaurantUserResponse> GetRestaurantUserResponses()
@@ -54,18 +59,6 @@ namespace Qr_Menu_API.Services
         {
             RestaurantUser restaurantUser = GetRestaurantUser(restaurantId, userId);
             return _restaurantUserConverter.Convert(restaurantUser);
-        }
-
-        public void DeleteRestaurantUsersByRestaurantId(int restaurantId)
-        {
-            List<RestaurantUser> restaurantUsers = GetRestaurantUsersByRestaurantId(restaurantId);
-            DeleteRestaurantUsers(restaurantUsers);
-        }
-
-        public void DeleteRestaurantUsersByUserId(string userId)
-        {
-            List<RestaurantUser> restaurantUsers = GetRestaurantUsersByUserId(userId);
-            DeleteRestaurantUsers(restaurantUsers);
         }
 
         public void DeleteRestaurantUserByRestaurantIdAndUserId(int restaurantId, string userId)

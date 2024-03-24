@@ -38,6 +38,18 @@ namespace Qr_Menu_API.Controllers
                 .Any(ru => ru.RestaurantId == restaurantId && ru.UserId == userId);
         }
 
+        private bool RestaurantUserExistsByRestaurantId(int restaurantId)
+        {
+            return _context.RestaurantUsers!
+                .Any(ru => ru.RestaurantId == restaurantId);
+        }
+
+        private bool RestaurantUserExistsByUserId(string userId)
+        {
+            return _context.RestaurantUsers!
+                .Any(ru => ru.UserId == userId);
+        }
+
         // GET: api/RestaurantUsers
         [HttpGet]
         public ActionResult<List<RestaurantUserResponse>> GetRestaurantUsers()
@@ -49,8 +61,8 @@ namespace Qr_Menu_API.Controllers
             return _restaurantUsersService.GetRestaurantUserResponses();
         }
 
-        // GET: api/RestaurantUsers/5
-        [HttpGet("{id}")]
+        // GET: api/RestaurantUsers/5/456-ds8
+        [HttpGet("{restaurantId}/{userId}")]
         public ActionResult<RestaurantUserResponse> GetRestaurantUser(int restaurantId, string userId)
         {
             if (RestaurantUsersIsNull())
@@ -66,18 +78,23 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/RestaurantUsers
         [HttpPost]
-        public ActionResult<RestaurantUserResponse> PostRestaurantUser(RestaurantUserCreate restaurantUserCreate)
+        public ActionResult PostRestaurantUser(RestaurantUserCreate restaurantUserCreate)
         {
             if (RestaurantUsersIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.RestaurantUsers'  is null.");
             }
-            return _restaurantUsersService.AddRestaurantUser(restaurantUserCreate);
+            int result = _restaurantUsersService.AddRestaurantUser(restaurantUserCreate);
+            if (result == -1)
+            {
+                return BadRequest("Invalid parameters");
+            }
+            return Ok("RestaurantUser Created");
 
         }
 
         // DELETE: api/RestaurantUsers/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{restaurantId}/{userId}")]
         public ActionResult DeleteRestaurantUser(int restaurantId, string userId)
         {
             if (RestaurantUsersIsNull())
