@@ -22,6 +22,12 @@ namespace Qr_Menu_API.Controllers
             _rolesService = rolesService;
         }
 
+        [HttpGet]
+        public ActionResult<List<IdentityRole>> GetRoles()
+        {
+            return _rolesService.GetRoles();
+        }
+
         // POST: api/Roles
         [HttpPost]
         public ActionResult PostApplicationRole(string name)

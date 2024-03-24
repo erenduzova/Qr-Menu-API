@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Qr_Menu_API.Data;
 using Qr_Menu_API.Models;
 
@@ -16,6 +17,10 @@ namespace Qr_Menu_API.Services
             _roleManager = roleManager;
         }
 
+        public List<IdentityRole> GetRoles()
+        {
+            return _context.Roles.ToList();
+        }
         public void CreateRole(IdentityRole applicationRole)
         {
             _roleManager.CreateAsync(applicationRole).Wait();
@@ -30,6 +35,7 @@ namespace Qr_Menu_API.Services
         {
             return _context.Roles.FirstOrDefault(r => r.Id == roleId);
         }
+
     }
 }
 
