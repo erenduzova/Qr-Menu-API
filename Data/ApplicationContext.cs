@@ -34,12 +34,12 @@ namespace Qr_Menu_API.Data
             builder.Entity<RestaurantUser>().HasKey(ru => new { ru.UserId, ru.RestaurantId });
             builder.Entity<RestaurantUser>()
                 .HasOne(ru => ru.Restaurant)
-                .WithMany(r => r.Users)
+                .WithMany(r => r.RestaurantUsers)
                 .HasForeignKey(ru => ru.RestaurantId)
                 .OnDelete(DeleteBehavior.NoAction);
             builder.Entity<RestaurantUser>()
                 .HasOne(ru => ru.ApplicationUser)
-                .WithMany(u => u.Restaurants)
+                .WithMany(u => u.RestaurantUsers)
                 .HasForeignKey(ru => ru.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
