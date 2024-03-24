@@ -136,5 +136,16 @@ namespace Qr_Menu_API.Controllers
             return _restaurantsService.GetRestaurantMenu(id);
         }
 
+        
+        // GET: api/Restaurants/RestaurantUsers/5
+        [HttpGet("RestaurantUsers/{id}")]
+        public ActionResult<List<RestaurantUserResponse>> GetRestaurantUsers(int id)
+        {
+            if (!RestaurantExists(id))
+            {
+                return NotFound("Restaurant not found with this id: " + id);
+            }
+            return _restaurantsService.GetRestaurantUsers(id);
+        }
     }
 }

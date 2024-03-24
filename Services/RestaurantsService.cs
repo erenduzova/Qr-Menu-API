@@ -70,6 +70,12 @@ namespace Qr_Menu_API.Services
                 .Include(r => r.RestaurantUsers)
                 .First(r => r.Id == restaurantId);
         }
+        private Restaurant GetRestaurantWithRestaurantUsers(int restaurantId)
+        {
+            return _context.Restaurants!
+                .Include(r => r.RestaurantUsers)
+                .First(r => r.Id == restaurantId);
+        }
 
         private bool CompanyExists(int id)
         {
@@ -141,10 +147,20 @@ namespace Qr_Menu_API.Services
             return _restaurantConverter.ConvertDetailed(restaurant);
         }
 
-        public ActionResult<RestaurantDetailedResponse> GetRestaurantMenu(int id)
+        public RestaurantDetailedResponse GetRestaurantMenu(int id)
         {
             Restaurant restaurant = GetRestaurantAndRelatedEntitesWithActiveState(id);
             return _restaurantConverter.ConvertDetailed(restaurant);
+        }
+
+        public List<RestaurantUserResponse> GetRestaurantUsers(int id)
+        {
+            Restaurant restaurant = GetRestaurantWithRestaurantUsers(id);
+            if (restaurant.RestaurantUsers == null)
+            {
+                return new List<RestaurantUserResponse>();
+            }
+            return _restaurantUsersService.GetRestaurantUserResponses((List<RestaurantUser>)restaurant.RestaurantUsers!);
         }
     }
 }
