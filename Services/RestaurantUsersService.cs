@@ -54,6 +54,10 @@ namespace Qr_Menu_API.Services
             List<RestaurantUser> restaurantUsers = GetRestaurantUsers();
             return _restaurantUserConverter.Convert(restaurantUsers);
         }
+        public List<RestaurantUserResponse> GetRestaurantUserResponses(List<RestaurantUser> restaurantUsers)
+        {
+            return _restaurantUserConverter.Convert(restaurantUsers);
+        }
 
         public RestaurantUserResponse GetRestaurantUserResponse(int restaurantId, string userId)
         {
