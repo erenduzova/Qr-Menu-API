@@ -83,13 +83,18 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Companies
         [HttpPost]
-        public ActionResult<CompanyResponse> PostCompany(CompanyCreate companyCreate)
+        public ActionResult<int> PostCompany(CompanyCreate companyCreate)
         {
             if (CompaniesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Companies'  is null.");
             }
-            return _companiesService.CreateCompany(companyCreate);
+            int newCompanyId = _companiesService.CreateCompany(companyCreate);
+            if (newCompanyId == -1)
+            {
+                return BadRequest("Invalid parentCompanyId provided.");
+            }
+            return Ok(newCompanyId);
         }
 
         // DELETE: api/Companies/5

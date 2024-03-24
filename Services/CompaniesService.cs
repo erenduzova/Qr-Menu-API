@@ -73,6 +73,12 @@ namespace Qr_Menu_API.Services
                 .ToList();
         }
 
+        private bool ParentCompanyExists(int companyId)
+        {
+            return _context.Companies!
+                .Any(c => c.Id == companyId && c.StateId != 0);
+        }
+
         public CompanyResponse GetCompanyResponse(int companyId)
         {
             Company foundCompany = GetCompanyWithRestaurants(companyId);
@@ -87,12 +93,17 @@ namespace Qr_Menu_API.Services
         }
 
 
-        public CompanyResponse CreateCompany(CompanyCreate companyCreate)
+        public int CreateCompany(CompanyCreate companyCreate)
         {
+            var parentCompanyId = companyCreate.ParentCompanyId;
+            if (parentCompanyId != null && !ParentCompanyExists((int)companyCreate.ParentCompanyId!))
+            {
+                return -1;
+            }
             Company newCompany = _companyConverter.Convert(companyCreate);
             _context.Companies!.Add(newCompany);
             _context.SaveChanges();
-            return GetCompanyResponse(newCompany.Id);
+            return newCompany.Id;
         }
 
         public CompanyResponse UpdateCompany(int companyId, CompanyCreate updatedCompany)
@@ -106,7 +117,6 @@ namespace Qr_Menu_API.Services
 
         public void DeleteCompanyAndRelatedEntities(Company company)
         {
-
             company.StateId = 0;
             _context.Companies!.Update(company);
 
@@ -126,6 +136,15 @@ namespace Qr_Menu_API.Services
                 {
                     _userService.DeleteApplicationUserAndRelatedEntities(user);
                 }
+            }
+
+            // Delete Sub Companies
+            ICollection<Company>? subCompanies = _context.Companies
+                .Where(c => c.ParentCompanyId == company.Id)
+                .ToList();
+            foreach (Company subCompany in subCompanies)
+            {
+                DeleteCompanyAndRelatedEntities(subCompany);
             }
 
             _context.SaveChanges();

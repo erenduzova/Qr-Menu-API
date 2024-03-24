@@ -31,12 +31,6 @@ namespace Qr_Menu_API.DTOs.Converter
                 StateId = (byte)1,
                 Restaurants = new List<Restaurant>()
             };
-
-            if (company.ParentCompanyId == 0)
-            {
-                company.ParentCompanyId = null;
-            }
-
             return company;
         }
 
