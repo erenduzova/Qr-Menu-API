@@ -46,7 +46,11 @@ namespace Qr_Menu_API.Services
                 .Include(u => u.State)
                 .ToList();
         }
-
+        private bool CompanyExists(int id)
+        {
+            return _context.Companies!
+                .Any(r => r.Id == id && r.StateId != 0);
+        }
         public ApplicationUserResponse GetApplicationUserResponse(string id)
         {
             ApplicationUser applicationUser = GetApplicationUserById(id);
@@ -61,6 +65,10 @@ namespace Qr_Menu_API.Services
 
         public string CreateApplicationUser(ApplicationUserCreate applicationUserCreate, string password)
         {
+            if (!CompanyExists(applicationUserCreate.CompanyId))
+            {
+                return "-1";
+            }
             ApplicationUser newApplicationUser = _userConverter.Convert(applicationUserCreate);
             _signInManager.UserManager.CreateAsync(newApplicationUser, password).Wait();
             return newApplicationUser.Id;
@@ -136,10 +144,10 @@ namespace Qr_Menu_API.Services
             }
             if (_signInManager.UserManager.IsInRoleAsync(applicationUser, identityRole.Name!).Result)
             {
-                return false;
+                _signInManager.UserManager.RemoveFromRoleAsync(applicationUser, identityRole.Name!).Wait();
+                return true;
             }
-            _signInManager.UserManager.RemoveFromRoleAsync(applicationUser, identityRole.Name!).Wait();
-            return true;
+            return false;
         }
     }
 }

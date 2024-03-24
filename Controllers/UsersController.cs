@@ -83,7 +83,12 @@ namespace Qr_Menu_API.Controllers
             {
                 return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
             }
-            return _usersService.CreateApplicationUser(applicationUserCreate, password);
+            string newUserId = _usersService.CreateApplicationUser(applicationUserCreate, password);
+            if (newUserId == "-1")
+            {
+                return BadRequest("Invalid CompanyId provided");
+            }
+            return Ok(newUserId);
         }
 
         // DELETE: api/Users/5
@@ -115,7 +120,7 @@ namespace Qr_Menu_API.Controllers
 
             if (signInResult.Succeeded)
             {
-                return Ok();
+                return Ok("LogIn succesfull");
             }
             else if (signInResult.IsLockedOut)
             {
@@ -209,7 +214,7 @@ namespace Qr_Menu_API.Controllers
             }
             if (_usersService.UnassignRole(userId, roleId))
             {
-                return Ok();
+                return Ok("Role Unassigned");
             }
             return Problem("Error occured while removing role");
         }
