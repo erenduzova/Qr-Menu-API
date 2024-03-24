@@ -38,12 +38,6 @@ namespace Qr_Menu_API.Controllers
                 .Any(r => r.Id == id);
         }
 
-        private bool CompanyExists(int id)
-        {
-            return _context.Companies!
-                .Any(r => r.Id == id);
-        }
-
         // GET: api/Restaurants
         [HttpGet]
         public ActionResult<IEnumerable<RestaurantResponse>> GetRestaurants()
@@ -94,11 +88,12 @@ namespace Qr_Menu_API.Controllers
             {
                 return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
             }
-            if (!CompanyExists(restaurantCreate.CompanyId))
+            int newRestaurantId = _restaurantsService.CreateRestaurant(restaurantCreate);
+            if (newRestaurantId == -1)
             {
-                return NotFound("Company not found with this id: " + restaurantCreate.CompanyId);
+                return BadRequest("Invalid CompanyId provided");
             }
-                return _restaurantsService.CreateRestaurant(restaurantCreate);
+                return newRestaurantId;
         }
 
         // DELETE: api/Restaurants/5

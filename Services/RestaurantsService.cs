@@ -71,6 +71,11 @@ namespace Qr_Menu_API.Services
                 .First(r => r.Id == restaurantId);
         }
 
+        private bool CompanyExists(int id)
+        {
+            return _context.Companies!
+                .Any(r => r.Id == id && r.StateId != 0);
+        }
         public RestaurantResponse GetRestaurantResponse(int id)
         {
             Restaurant foundRestaurant = GetRestaurantWithCategories(id);
@@ -85,6 +90,10 @@ namespace Qr_Menu_API.Services
 
         public int CreateRestaurant(RestaurantCreate restaurantCreate)
         {
+            if (!CompanyExists(restaurantCreate.CompanyId))
+            {
+                return -1;
+            }
             Restaurant newRestaurant = _restaurantConverter.Convert(restaurantCreate);
             _context.Restaurants!.Add(newRestaurant);
             _context.SaveChanges();
