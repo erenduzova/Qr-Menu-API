@@ -27,6 +27,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DTOs\DetailedResponseDTOs\" />
-    <Folder Include="DTOs\Converter\" />
   </ItemGroup>
 </Project>
