@@ -17,13 +17,15 @@ namespace Qr_Menu_API.Services
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RolesService _rolesService;
         private readonly UserConverter _userConverter;
+        private readonly RestaurantUsersService _restaurantUsersService;
 
-        public UsersService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, RolesService rolesService, UserConverter userConverter)
+        public UsersService(ApplicationContext context, SignInManager<ApplicationUser> signInManager, RolesService rolesService, UserConverter userConverter, RestaurantUsersService restaurantUsersService)
         {
             _context = context;
             _signInManager = signInManager;
             _rolesService = rolesService;
             _userConverter = userConverter;
+            _restaurantUsersService = restaurantUsersService;
         }
         private ApplicationUser GetApplicationUserById(string userId)
         {
@@ -76,6 +78,10 @@ namespace Qr_Menu_API.Services
         {
             applicationUser.StateId = 0;
             _signInManager.UserManager.UpdateAsync(applicationUser).Wait();
+            if (applicationUser.RestaurantUsers != null)
+            {
+                _restaurantUsersService.DeleteRestaurantUsers(applicationUser.RestaurantUsers);
+            }
             _signInManager.SignOutAsync().Wait();
         }
 
