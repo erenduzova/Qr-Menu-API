@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Qr_Menu_API.Models;
@@ -79,6 +80,9 @@ namespace Qr_Menu_API.Data
 
                             _userManager.CreateAsync(applicationUser, "Admin123!").Wait();
                             _userManager.AddToRoleAsync(applicationUser, "Administrator").Wait();
+                            Claim claim = new Claim("CompanyId", company.Id.ToString());
+                            _userManager.AddClaimAsync(applicationUser, claim).Wait();
+                            _userManager.AddToRoleAsync(applicationUser, "CompanyAdministrator").Wait();
                         }
 
 
