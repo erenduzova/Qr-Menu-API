@@ -43,7 +43,7 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound();
             }
-            if (User.IsInRole(identityRole.Name!))
+            if (User.IsInRole(identityRole.Name!) || identityRole.Name == "Administrator")
             {
                 return Problem("This role can not be deleted.");
             }
