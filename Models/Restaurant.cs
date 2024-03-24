@@ -41,6 +41,6 @@ namespace Qr_Menu_API.Models
         public State? State { get; set; }
         
         public virtual ICollection<Category>? Categories { get; set; }
-        public virtual ICollection<RestaurantUser>? Users { get; set; }
+        public virtual ICollection<RestaurantUser>? RestaurantUsers { get; set; }
     }
 }

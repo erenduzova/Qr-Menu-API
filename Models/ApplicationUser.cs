@@ -36,7 +36,7 @@ namespace Qr_Menu_API.Models
         [ForeignKey("StateId")]
         public State? State { get; set; }
 
-        public virtual ICollection<RestaurantUser>? Restaurants { get; set;}
+        public virtual ICollection<RestaurantUser>? RestaurantUsers { get; set;}
 
     }
 }
