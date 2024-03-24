@@ -10,14 +10,23 @@ namespace Qr_Menu_API.Services
 	public class RestaurantUsersService
 	{
         private readonly ApplicationContext _context;
-        private readonly UsersService _usersService;
-        private readonly RestaurantsService _restaurantsService;
 
-        public RestaurantUsersService(ApplicationContext context, UsersService usersService, RestaurantsService restaurantsService)
+        public RestaurantUsersService(ApplicationContext context)
         {
             _context = context;
-            _usersService = usersService;
-            _restaurantsService = restaurantsService;
+        }
+
+        private List<RestaurantUser> GetRestaurantUsersByRestaurantId(int restaurantId)
+        {
+            return _context.RestaurantUsers!.Where(ru => ru.RestaurantId == restaurantId).ToList();
+        }
+        private List<RestaurantUser> GetRestaurantUsersByUserId(string userId)
+        {
+            return _context.RestaurantUsers!.Where(ru => ru.UserId == userId).ToList();
+        }
+        private RestaurantUser GetRestaurantUser(int restaurantId, string userId)
+        {
+            return _context.RestaurantUsers!.First(ru => ru.RestaurantId == restaurantId && ru.UserId == userId);
         }
 
         public RestaurantUserResponse AddRestaurantUser(RestaurantUserCreate restaurantUserCreate)
@@ -42,19 +51,57 @@ namespace Qr_Menu_API.Services
             List<RestaurantUserResponse> restaurantUserResponses = new List<RestaurantUserResponse>();
             foreach (RestaurantUser restaurantUser in restaurantUsers)
             {
-                restaurantUserResponses.Add(GetRestaurantUserResponse(restaurantUser));
+                RestaurantUserResponse restaurantUserResponse = new()
+                {
+                    RestaurantId = restaurantUser.RestaurantId,
+                    UserId = restaurantUser.UserId
+                };
+                restaurantUserResponses.Add(restaurantUserResponse);
             }
             return restaurantUserResponses;
         }
 
-        public RestaurantUserResponse GetRestaurantUserResponse(RestaurantUser restaurantUser)
+        public RestaurantUserResponse GetRestaurantUserResponse(int restaurantId, string userId)
         {
+            RestaurantUser restaurantUser = GetRestaurantUser(restaurantId, userId);
             RestaurantUserResponse restaurantUserResponse = new()
             {
                 RestaurantId = restaurantUser.RestaurantId,
                 UserId = restaurantUser.UserId
             };
             return restaurantUserResponse;
+        }
+
+        public void DeleteRestaurantUsersByRestaurantId(int restaurantId)
+        {
+            List<RestaurantUser> restaurantUsers = GetRestaurantUsersByRestaurantId(restaurantId);
+            DeleteRestaurantUsers(restaurantUsers);
+        }
+
+        public void DeleteRestaurantUsersByUserId(string userId)
+        {
+            List<RestaurantUser> restaurantUsers = GetRestaurantUsersByUserId(userId);
+            DeleteRestaurantUsers(restaurantUsers);
+        }
+
+        public void DeleteRestaurantUserByRestaurantIdAndUserId(int restaurantId, string userId)
+        {
+            RestaurantUser restaurantUser = GetRestaurantUser(restaurantId, userId);
+            DeleteRestaurantUser(restaurantUser);
+        }
+
+        public void DeleteRestaurantUsers(ICollection<RestaurantUser> restaurantUsers)
+        {
+            foreach (RestaurantUser restaurantUser in restaurantUsers)
+            {
+                DeleteRestaurantUser(restaurantUser);
+            }
+        }
+
+        public void DeleteRestaurantUser(RestaurantUser restaurantUser)
+        {
+            _context.RestaurantUsers!.Remove(restaurantUser);
+            _context.SaveChanges();
         }
     }
 }
