@@ -25,7 +25,11 @@ namespace Qr_Menu_API
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationContext>().AddDefaultTokenProviders();
             builder.Services.AddAuthentication();
-            builder.Services.AddAuthorization();
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("CompanyAdministrator", policy => policy.RequireClaim("CompanyId"));
+                options.AddPolicy("RestaurantAdministrator", policy => policy.RequireClaim("RestaurantId"));
+            });
 
             builder.Services.AddScoped<StateConverter>();
             builder.Services.AddScoped<CompanyConverter>();
