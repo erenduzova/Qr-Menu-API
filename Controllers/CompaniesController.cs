@@ -13,6 +13,7 @@ using Qr_Menu_API.DTOs.CreateDTOs;
 using Qr_Menu_API.DTOs.ResponseDTOs;
 using Qr_Menu_API.Models;
 using Qr_Menu_API.Services;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Qr_Menu_API.Controllers
 {
@@ -42,6 +43,7 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Companies
         [HttpGet]
+        [Authorize]
         public ActionResult<IEnumerable<CompanyResponse>> GetCompanies()
         {
             if (CompaniesIsNull())
@@ -53,6 +55,7 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Companies/5
         [HttpGet("{id}")]
+        [Authorize]
         public ActionResult<CompanyResponse> GetCompany(int id)
         {
             if (CompaniesIsNull())
@@ -68,8 +71,14 @@ namespace Qr_Menu_API.Controllers
 
         // PUT: api/Companies/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "CompanyAdministrator")]
+        [Authorize(Policy = "CompanyAdministrator")]
         public ActionResult<CompanyResponse> PutCompany(int id, CompanyCreate updatedCompany)
         {
+            if (User.HasClaim("CompanyId", id.ToString()) == false)
+            {
+                return Unauthorized();
+            }
             if (CompaniesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Companies'  is null.");
@@ -83,6 +92,7 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Companies
         [HttpPost]
+        [Authorize(Roles = "Administrator")]
         public ActionResult<int> PostCompany(CompanyCreate companyCreate)
         {
             if (CompaniesIsNull())
@@ -99,6 +109,7 @@ namespace Qr_Menu_API.Controllers
 
         // DELETE: api/Companies/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrator")]
         public ActionResult DeleteCompany(int id)
         {
             if (CompaniesIsNull())
