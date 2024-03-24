@@ -87,7 +87,12 @@ namespace Qr_Menu_API.Controllers
             {
                 return Problem("Entity set 'ApplicationContext.Categories'  is null.");
             }
-            return _categoriesService.CreateCategory(categoryCreate);
+            int newCategoryId = _categoriesService.CreateCategory(categoryCreate);
+            if (newCategoryId == -1)
+            {
+                return BadRequest("Invalid restaurantId provided.");
+            }
+            return Ok(newCategoryId);
         }
 
         // DELETE: api/Categories/5

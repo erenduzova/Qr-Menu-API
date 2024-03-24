@@ -53,6 +53,12 @@ namespace Qr_Menu_API.Services
                 .ToList();
         }
 
+        private bool RestaurantExists(int id)
+        {
+            return _context.Restaurants!
+                .Any(r => r.Id == id && r.StateId != 0);
+        }
+
         public CategoryResponse GetCategoryResponse(int id)
         {
             Category foundCategory = GetCategoryWithFoods(id);
@@ -67,6 +73,10 @@ namespace Qr_Menu_API.Services
 
         public int CreateCategory(CategoryCreate categoryCreate)
         {
+            if (!RestaurantExists(categoryCreate.RestaurantId))
+            {
+                return -1;
+            }
             Category newCategory = _categoryConverter.Convert(categoryCreate);
             _context.Categories!.Add(newCategory);
             _context.SaveChanges();
