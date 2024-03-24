@@ -119,17 +119,13 @@ namespace Qr_Menu_API.Controllers
                 return NotFound("Restaurant not found with this id: " + id);
             }
             _restaurantsService.DeleteRestaurantAndRelatedEntitiesById(id);
-
-            //
-            //
-            // RestaurantUsers  edit to deleted
-            //
-            //
-
             return Ok();
         }
 
+        // Restaurant details and menu with all states
+        // GET: api/Restaurants/Detailed/5
         [HttpGet("Detailed/{id}")]
+        [Authorize(Roles = "Administrator,CompanyAdministrator,RestaurantAdministrator")]
         public ActionResult<RestaurantDetailedResponse> GetDetailedRestaurant(int id)
         {
             if (!RestaurantExists(id))

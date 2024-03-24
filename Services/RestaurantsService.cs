@@ -15,12 +15,14 @@ namespace Qr_Menu_API.Services
         private readonly ApplicationContext _context;
         private readonly CategoriesService _categoriesService;
         private readonly RestaurantConverter _restaurantConverter;
+        private readonly RestaurantUsersService _restaurantUsersService;
 
-        public RestaurantsService(ApplicationContext context, CategoriesService categoriesService, RestaurantConverter restaurantConverter)
+        public RestaurantsService(ApplicationContext context, CategoriesService categoriesService, RestaurantConverter restaurantConverter, RestaurantUsersService restaurantUsersService)
         {
             _context = context;
             _categoriesService = categoriesService;
             _restaurantConverter = restaurantConverter;
+            _restaurantUsersService = restaurantUsersService;
         }
 
         private Restaurant GetRestaurant(int restaurantId)
@@ -52,7 +54,14 @@ namespace Qr_Menu_API.Services
                 .Include(c => c.State)
                 .ToList();
         }
-
+        private Restaurant GetRestaurantWithCategoriesAndRestaurantUsers(int restaurantId)
+        {
+            return _context.Restaurants!
+                .Include(r => r.Categories)
+                .Include(r => r.State)
+                .Include(r => r.RestaurantUsers)
+                .First(r => r.Id == restaurantId);
+        }
 
         public RestaurantResponse GetRestaurantResponse(int id)
         {
@@ -96,12 +105,16 @@ namespace Qr_Menu_API.Services
                     _categoriesService.DeleteCategoryAndRelatedEntities(category);
                 }
             }
+
+            // Delete this restaurant's RestaurantUsers
+            _restaurantUsersService.DeleteRestaurantUsers(restaurant.RestaurantUsers!);
+
             _context.SaveChanges();
         }
 
         public void DeleteRestaurantAndRelatedEntitiesById(int id)
         {
-            Restaurant restaurant = GetRestaurantWithCategories(id);
+            Restaurant restaurant = GetRestaurantWithCategoriesAndRestaurantUsers(id);
             DeleteRestaurantAndRelatedEntities(restaurant);
         }
 
