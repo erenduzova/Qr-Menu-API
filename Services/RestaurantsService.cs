@@ -42,11 +42,11 @@ namespace Qr_Menu_API.Services
         private Restaurant GetRestaurantWithRelatedEntitiesWithStates(int restaurantId)
         {
             return _context.Restaurants!
-                 .Include(r => r.State)
-                 .Include(r => r.Categories)
-                     .ThenInclude(c => c.State)
-                 .Include(r => r.Categories)
-                     .ThenInclude(c => c.Foods)
+                 .Include(r => r.State)!
+                 .Include(r => r.Categories)!
+                     .ThenInclude(c => c.State)!
+                 .Include(r => r.Categories)!
+                     .ThenInclude(c => c.Foods)!
                          .ThenInclude(f => f.State)
                  .First(r => r.Id == restaurantId);
         }
@@ -54,8 +54,8 @@ namespace Qr_Menu_API.Services
         private Restaurant GetRestaurantAndRelatedEntitesWithActiveState(int restaurantId)
         {
             var restaurant = _context.Restaurants!
-                .Include(r => r.State)
-                .Include(r => r.Categories)
+                .Include(r => r.State)!
+                .Include(r => r.Categories)!
                 .ThenInclude(c => c.Foods)
                 .First(r => r.Id == restaurantId);
 
@@ -63,12 +63,16 @@ namespace Qr_Menu_API.Services
                 .Where(c => c.StateId == 1)
                 .ToList();
 
-            foreach (var category in restaurant.Categories)
+            if (restaurant.Categories!.Count() != 0)
             {
-                category.Foods = category.Foods?
-                    .Where(f => f.StateId == 1)
-                    .ToList();
+                foreach (var category in restaurant.Categories!)
+                {
+                    category.Foods = category.Foods?
+                        .Where(f => f.StateId == 1)
+                        .ToList();
+                }
             }
+            
             return restaurant;
         }
 
