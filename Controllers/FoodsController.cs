@@ -37,6 +37,19 @@ namespace Qr_Menu_API.Controllers
             return _context.Foods!
                 .Any(c => c.Id == id);
         }
+        private int GetRestaurantIdByFoodId(int foodId)
+        {
+            var food = _context.Foods!
+                .Include(f => f.Category)
+                .FirstOrDefault(f => f.Id == foodId);
+            return food!.Category!.RestaurantId;
+        }
+        private int GetRestaurantIdByCategoryId(int categoryId)
+        {
+            var category = _context.Categories!
+                .FirstOrDefault(c => c.Id == categoryId);
+            return category!.RestaurantId;
+        }
 
         // GET: api/Foods
         [HttpGet]
@@ -77,6 +90,10 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound("Food not found with this id: " + id);
             }
+            if (User.HasClaim("RestaurantId", GetRestaurantIdByFoodId(id).ToString()) == false)
+            {
+                return Unauthorized();
+            }
             return _foodsService.UpdateFood(id, updatedFood);
         }
 
@@ -85,6 +102,10 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<int> PostFood(FoodCreate foodCreate)
         {
+            if (User.HasClaim("RestaurantId", GetRestaurantIdByCategoryId(foodCreate.CategoryId).ToString()) == false)
+            {
+                return Unauthorized();
+            }
             if (FoodsIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Foods'  is null.");
@@ -110,6 +131,10 @@ namespace Qr_Menu_API.Controllers
             {
                 return NotFound("Food not found with this id: " + id);
             }
+            if (User.HasClaim("RestaurantId", GetRestaurantIdByFoodId(id).ToString()) == false)
+            {
+                return Unauthorized();
+            }
             _foodsService.DeleteFoodAndRelatedEntitiesById(id);
             return Ok();
         }
@@ -125,6 +150,10 @@ namespace Qr_Menu_API.Controllers
             if (!FoodExists(id))
             {
                 return NotFound("Food not found with this id: " + id);
+            }
+            if (User.HasClaim("RestaurantId", GetRestaurantIdByFoodId(id).ToString()) == false)
+            {
+                return Unauthorized();
             }
             if (imageFile == null || imageFile.Length == 0)
             {

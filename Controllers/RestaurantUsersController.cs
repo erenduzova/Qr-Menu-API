@@ -81,8 +81,13 @@ namespace Qr_Menu_API.Controllers
         // POST: api/RestaurantUsers
         [HttpPost]
         [Authorize(Roles = "RestaurantAdministrator")]
+        [Authorize(Policy = "RestaurantAdministrator")]
         public ActionResult PostRestaurantUser(RestaurantUserCreate restaurantUserCreate)
         {
+            if (User.HasClaim("RestaurantId", restaurantUserCreate.RestaurantId.ToString()) == false)
+            {
+                return Unauthorized();
+            }
             if (RestaurantUsersIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.RestaurantUsers'  is null.");

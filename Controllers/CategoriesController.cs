@@ -38,6 +38,14 @@ namespace Qr_Menu_API.Controllers
                 .Any(c => c.Id == id);
         }
 
+        private int GetRestaurantId(int categoryId)
+        {
+            var category = _context.Categories!
+                .Include(c => c.Restaurant)
+                .FirstOrDefault(c => c.Id == categoryId);
+            return category.RestaurantId;
+        }
+
         // GET: api/Categories
         [HttpGet]
         [Authorize]
@@ -71,6 +79,7 @@ namespace Qr_Menu_API.Controllers
         [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<CategoryResponse> PutCategory(int id, CategoryCreate updatedCategory)
         {
+            
             if (CategoriesIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Categories'  is null.");
@@ -78,6 +87,10 @@ namespace Qr_Menu_API.Controllers
             if (!CategoryExists(id))
             {
                 return NotFound("Category not found with this id: " + id);
+            }
+            if (User.HasClaim("RestaurantId", GetRestaurantId(id).ToString()) == false)
+            {
+                return Unauthorized();
             }
             return _categoriesService.UpdateCategory(id, updatedCategory);
         }
@@ -116,6 +129,10 @@ namespace Qr_Menu_API.Controllers
             if (!CategoryExists(id))
             {
                 return NotFound("Category not found with this id: " + id);
+            }
+            if (User.HasClaim("RestaurantId", GetRestaurantId(id).ToString()) == false)
+            {
+                return Unauthorized();
             }
             _categoriesService.DeleteCategoryAndRelatedEntitiesById(id);
             return Ok();

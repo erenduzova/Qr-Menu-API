@@ -150,20 +150,6 @@ namespace Qr_Menu_API.Controllers
             }
         }
 
-        //// api/Users/ResetPassword
-        //[HttpPost("ResetPassword")]
-        //public void ResetPassword(string userName, string password)
-        //{
-        //    ApplicationUser? applicationUser = _signInManager.UserManager.FindByNameAsync(userName).Result;
-        //    if (applicationUser == null)
-        //    {
-        //        return;
-        //    }
-        //    _signInManager.UserManager.RemovePasswordAsync(applicationUser).Wait();
-        //    _signInManager.UserManager.AddPasswordAsync(applicationUser, password).Wait();
-        //    return;
-        //}
-
         // api/Users/ResetPasswordGenerateToken
         [HttpPost("ResetPasswordGenerateToken")]
         public ActionResult<string>? ResetPasswordGenerateToken(string userName)
