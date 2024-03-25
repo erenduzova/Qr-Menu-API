@@ -114,5 +114,24 @@ namespace Qr_Menu_API.Controllers
             return Ok();
         }
 
+        [HttpPost("image/{id}")]
+        [Authorize(Roles = "RestaurantAdministrator")]
+        public ActionResult<string?> UploadFoodImage(int id, IFormFile imageFile)
+        {
+            if (FoodsIsNull())
+            {
+                return Problem("Entity set 'ApplicationContext.Foods'  is null.");
+            }
+            if (!FoodExists(id))
+            {
+                return NotFound("Food not found with this id: " + id);
+            }
+            if (imageFile == null || imageFile.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            return Ok(_foodsService.uploadFoodImage(id, imageFile));
+        }
     }
 }

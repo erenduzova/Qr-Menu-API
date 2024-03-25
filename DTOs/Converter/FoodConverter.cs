@@ -24,7 +24,8 @@ namespace Qr_Menu_API.DTOs.Converter
                 Price = foodCreate.Price,
                 Description = foodCreate.Description,
                 CategoryId = foodCreate.CategoryId,
-                StateId = (byte)1
+                StateId = (byte)1,
+                ImageUrl = null
             };
             return newFood;
         }
@@ -38,8 +39,12 @@ namespace Qr_Menu_API.DTOs.Converter
                 Price = food.Price,
                 Description = food.Description,
                 CategoryId = food.CategoryId,
-                StateResponse = _stateConverter.Convert(food.State!),
+                StateResponse = _stateConverter.Convert(food.State!)
             };
+            if (food.ImageUrl != null)
+            {
+                foodResponse.ImageUrl = food.ImageUrl;
+            }
             return foodResponse;
         }
 

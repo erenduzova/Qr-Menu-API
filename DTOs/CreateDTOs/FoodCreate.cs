@@ -20,6 +20,8 @@ namespace Qr_Menu_API.DTOs.CreateDTOs
         public string? Description { get; set; }
 
         public int CategoryId { get; set; }
+
+        public string? ImageUrl { get; set; }
     }
 }
 

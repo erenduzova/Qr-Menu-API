@@ -26,5 +26,7 @@ namespace Qr_Menu_API.Models
         [ForeignKey("StateId")]
         public State? State { get; set; }
 
+        public string? ImageUrl { get; set; }
+
     }
 }

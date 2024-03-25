@@ -19,7 +19,10 @@ namespace Qr_Menu_API.DTOs.ResponseDTOs
         public int CategoryId { get; set; }
 
         public StateResponse? StateResponse { get; set; }
-    
-	}
+
+        public string? ImageUrl { get; set; }
+
+
+    }
 }
 

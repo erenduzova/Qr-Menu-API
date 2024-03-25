@@ -95,6 +95,36 @@ namespace Qr_Menu_API.Services
             Food food = GetFoodWithCategory(id);
             DeleteFoodAndRelatedEntities(food);
         }
+
+        public string uploadFoodImage(int id, IFormFile imageFile)
+        {
+            Food food = _context.Foods!.First(f => f.Id == id);
+
+            // Get image extension
+            string fileExtension = Path.GetExtension(imageFile.FileName);
+            // Create unique file name
+            string uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
+            // Image save path
+            string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "Image", uniqueFileName);
+
+            // Create Image file if not exist
+            if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "Image")))
+            {
+                Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "Image"));
+            }
+
+            // Save File
+            using (FileStream fileStream = new(imagePath, FileMode.Create))
+            {
+                imageFile.CopyTo(fileStream);
+            }
+
+            food.ImageUrl = imagePath;
+            _context.SaveChanges();
+
+            // Return path of the image
+            return imagePath;
+        }
     }
 }
 
