@@ -40,6 +40,7 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Restaurants
         [HttpGet]
+        [Authorize]
         public ActionResult<IEnumerable<RestaurantResponse>> GetRestaurants()
         {
             if (RestaurantsIsNull())
@@ -51,6 +52,7 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Restaurants/5
         [HttpGet("{id}")]
+        [Authorize]
         public ActionResult<RestaurantResponse> GetRestaurant(int id)
         {
             if (RestaurantsIsNull())
@@ -67,8 +69,14 @@ namespace Qr_Menu_API.Controllers
 
         // PUT: api/Restaurants/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "RestaurantAdministrator")]
+        [Authorize(Policy = "RestaurantAdministrator")]
         public ActionResult<RestaurantResponse> PutRestaurant(int id, RestaurantCreate updatedRestaurant)
         {
+            if (User.HasClaim("RestaurantId", id.ToString()) == false)
+            {
+                return Unauthorized();
+            }
             if (RestaurantsIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
@@ -82,8 +90,14 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Restaurants
         [HttpPost]
+        [Authorize(Roles = "CompanyAdministrator")]
+        [Authorize(Policy = "CompanyAdministrator")]
         public ActionResult<int> PostRestaurant(RestaurantCreate restaurantCreate)
         {
+            if (User.HasClaim("CompanyId", restaurantCreate.CompanyId.ToString()) == false)
+            {
+                return Unauthorized();
+            }
             if (RestaurantsIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
@@ -98,8 +112,14 @@ namespace Qr_Menu_API.Controllers
 
         // DELETE: api/Restaurants/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "RestaurantAdministrator")]
+        [Authorize(Policy = "RestaurantAdministrator")]
         public ActionResult DeleteRestaurant(int id)
         {
+            if (User.HasClaim("RestaurantId", id.ToString()) == false)
+            {
+                return Unauthorized();
+            }
             if (RestaurantsIsNull())
             {
                 return Problem("Entity set 'ApplicationContext.Restaurants'  is null.");
@@ -115,8 +135,14 @@ namespace Qr_Menu_API.Controllers
         // Restaurant details and menu with all states
         // GET: api/Restaurants/Detailed/5
         [HttpGet("Detailed/{id}")]
+        [Authorize(Roles = "RestaurantAdministrator")]
+        [Authorize(Policy = "RestaurantAdministrator")]
         public ActionResult<RestaurantDetailedResponse> GetDetailedRestaurant(int id)
         {
+            if (User.HasClaim("RestaurantId", id.ToString()) == false)
+            {
+                return Unauthorized();
+            }
             if (!RestaurantExists(id))
             {
                 return NotFound("Restaurant not found with this id: " + id);
@@ -125,7 +151,7 @@ namespace Qr_Menu_API.Controllers
         }
 
         // Restaurant details and menu with only active state
-        // GET: api/Restaurants/Detailed/5
+        // GET: api/Restaurants/Menu/5
         [HttpGet("Menu/{id}")]
         public ActionResult<RestaurantDetailedResponse> GetRestaurantMenu(int id)
         {
@@ -139,8 +165,14 @@ namespace Qr_Menu_API.Controllers
         
         // GET: api/Restaurants/RestaurantUsers/5
         [HttpGet("RestaurantUsers/{id}")]
+        [Authorize(Roles = "RestaurantAdministrator")]
+        [Authorize(Policy = "RestaurantAdministrator")]
         public ActionResult<List<RestaurantUserResponse>> GetRestaurantUsers(int id)
         {
+            if (User.HasClaim("RestaurantId", id.ToString()) == false)
+            {
+                return Unauthorized();
+            }
             if (!RestaurantExists(id))
             {
                 return NotFound("Restaurant not found with this id: " + id);

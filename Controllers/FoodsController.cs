@@ -66,6 +66,7 @@ namespace Qr_Menu_API.Controllers
 
         // PUT: api/Foods/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<FoodResponse> PutFood(int id, FoodCreate updatedFood)
         {
             if (FoodsIsNull())
@@ -81,6 +82,7 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Foods
         [HttpPost]
+        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult<int> PostFood(FoodCreate foodCreate)
         {
             if (FoodsIsNull())
@@ -97,6 +99,7 @@ namespace Qr_Menu_API.Controllers
 
         // DELETE: api/Foods/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "RestaurantAdministrator")]
         public ActionResult DeleteFood(int id)
         {
             if (FoodsIsNull())

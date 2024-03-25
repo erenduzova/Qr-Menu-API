@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ using Qr_Menu_API.DTOs.Converter;
 using Qr_Menu_API.DTOs.CreateDTOs;
 using Qr_Menu_API.DTOs.ResponseDTOs;
 using Qr_Menu_API.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Qr_Menu_API.Services
 {
@@ -148,6 +150,20 @@ namespace Qr_Menu_API.Services
                 return true;
             }
             return false;
+        }
+
+        public void GiveCompanyAdministratorClaim(string userId)
+        {
+            ApplicationUser applicationUser = GetApplicationUserById(userId);
+            Claim claim = new Claim("CompanyId", applicationUser.CompanyId.ToString());
+            _signInManager.UserManager.AddClaimAsync(applicationUser, claim).Wait();
+        }
+
+        public void GiveRestaurantAdministratorClaim(string userId, int restaurantId)
+        {
+            ApplicationUser applicationUser = GetApplicationUserById(userId);
+            Claim claim = new Claim("RestaurantId", restaurantId.ToString());
+            _signInManager.UserManager.AddClaimAsync(applicationUser, claim).Wait();
         }
     }
 }

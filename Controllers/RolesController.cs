@@ -23,6 +23,7 @@ namespace Qr_Menu_API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public ActionResult<List<IdentityRole>> GetRoles()
         {
             return _rolesService.GetRoles();
@@ -30,6 +31,7 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Roles
         [HttpPost]
+        [Authorize(Roles = "Administrator")]
         public ActionResult PostApplicationRole(string name)
         {
             IdentityRole applicationRole = new IdentityRole(name);
@@ -38,6 +40,7 @@ namespace Qr_Menu_API.Controllers
         }
 
         [HttpDelete("{roleId}")]
+        [Authorize(Roles = "Administrator")]
         public ActionResult DeleteApplicationRole(string roleId)
         {
             if (_context.Roles == null)

@@ -7,6 +7,7 @@ using Qr_Menu_API.DTOs.CreateDTOs;
 using Qr_Menu_API.DTOs.ResponseDTOs;
 using Qr_Menu_API.Models;
 using Qr_Menu_API.Services;
+using System.Security.Claims;
 
 namespace Qr_Menu_API.Controllers
 {
@@ -40,6 +41,7 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Users
         [HttpGet]
+        [Authorize]
         public ActionResult<List<ApplicationUserResponse>> GetUsers()
         {
             if (UsersIsNull())
@@ -51,6 +53,7 @@ namespace Qr_Menu_API.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
+        [Authorize]
         public ActionResult<ApplicationUserResponse> GetApplicationUser(string id)
         {
             if (UsersIsNull())
@@ -66,8 +69,13 @@ namespace Qr_Menu_API.Controllers
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
+        [Authorize]
         public ActionResult<ApplicationUserResponse> PutApplicationUser(string id, ApplicationUserCreate updatedApplicationUser)
         {
+            if (User.FindFirst(ClaimTypes.NameIdentifier)?.Value != id)
+            {
+                return Unauthorized();
+            }
             if (!UserExistsById(id))
             {
                 return NotFound("User not found with this id: " + id);
@@ -77,6 +85,7 @@ namespace Qr_Menu_API.Controllers
 
         // POST: api/Users
         [HttpPost]
+        [Authorize(Roles = "Administrator,CompanyAdministrator")]
         public ActionResult<string> PostApplicationUser(ApplicationUserCreate applicationUserCreate, string password)
         {
             if (UsersIsNull())
@@ -93,6 +102,7 @@ namespace Qr_Menu_API.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrator")]
         public ActionResult DeleteApplicationUser(string id)
         {
             if (UsersIsNull())
@@ -183,6 +193,7 @@ namespace Qr_Menu_API.Controllers
 
         // api/Users/AssignRole
         [HttpPost("AssignRole")]
+        [Authorize(Roles = "Administrator")]
         public ActionResult AssignRole(string userId, string roleId)
         {
             if (UsersIsNull())
@@ -202,6 +213,7 @@ namespace Qr_Menu_API.Controllers
 
         // api/Users/UnassignRole
         [HttpPut("UnassignRole")]
+        [Authorize(Roles = "Administrator")]
         public ActionResult UnassignRole(string userId, string roleId)
         {
             if (UsersIsNull())
@@ -216,6 +228,40 @@ namespace Qr_Menu_API.Controllers
             {
                 return Ok("Role Unassigned");
             }
+            return Problem("Error occured while removing role");
+        }
+
+        // api/Users/GiveCompanyClaim/54d5
+        [HttpPost("GiveCompanyClaim/{userId}")]
+        [Authorize(Roles = "Administrator")]
+        public ActionResult GiveCompanyAdministratorClaim(string userId)
+        {
+            if (UsersIsNull())
+            {
+                return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
+            }
+            if (!UserExistsById(userId))
+            {
+                return NotFound("User not found with this id: " + userId);
+            }
+            _usersService.GiveCompanyAdministratorClaim(userId);
+            return Problem("Error occured while removing role");
+        }
+
+        // api/Users/GiveRestaurantClaim/54d5/4
+        [HttpPost("GiveRestaurantClaim/{userId}/{restaurantId}")]
+        [Authorize(Roles = "CompanyAdministrator")]
+        public ActionResult GiveRestaurantAdministratorClaim(string userId, int restaurantId)
+        {
+            if (UsersIsNull())
+            {
+                return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
+            }
+            if (!UserExistsById(userId))
+            {
+                return NotFound("User not found with this id: " + userId);
+            }
+            _usersService.GiveRestaurantAdministratorClaim(userId, restaurantId);
             return Problem("Error occured while removing role");
         }
     }
