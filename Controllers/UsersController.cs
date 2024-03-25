@@ -245,7 +245,7 @@ namespace Qr_Menu_API.Controllers
                 return NotFound("User not found with this id: " + userId);
             }
             _usersService.GiveRestaurantAdministratorClaim(userId, restaurantId);
-            return Problem("Error occured while removing role");
+            return Ok();
         }
     }
 }
