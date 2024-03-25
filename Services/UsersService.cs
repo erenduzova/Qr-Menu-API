@@ -73,6 +73,8 @@ namespace Qr_Menu_API.Services
             }
             ApplicationUser newApplicationUser = _userConverter.Convert(applicationUserCreate);
             _signInManager.UserManager.CreateAsync(newApplicationUser, password).Wait();
+            Claim claim = new Claim("CompanyId", newApplicationUser.CompanyId.ToString());
+            _signInManager.UserManager.AddClaimAsync(newApplicationUser, claim).Wait();
             return newApplicationUser.Id;
         }
 
@@ -150,13 +152,6 @@ namespace Qr_Menu_API.Services
                 return true;
             }
             return false;
-        }
-
-        public void GiveCompanyAdministratorClaim(string userId)
-        {
-            ApplicationUser applicationUser = GetApplicationUserById(userId);
-            Claim claim = new Claim("CompanyId", applicationUser.CompanyId.ToString());
-            _signInManager.UserManager.AddClaimAsync(applicationUser, claim).Wait();
         }
 
         public void GiveRestaurantAdministratorClaim(string userId, int restaurantId)

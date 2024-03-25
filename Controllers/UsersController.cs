@@ -231,23 +231,6 @@ namespace Qr_Menu_API.Controllers
             return Problem("Error occured while removing role");
         }
 
-        // api/Users/GiveCompanyClaim/54d5
-        [HttpPost("GiveCompanyClaim/{userId}")]
-        [Authorize(Roles = "Administrator")]
-        public ActionResult GiveCompanyAdministratorClaim(string userId)
-        {
-            if (UsersIsNull())
-            {
-                return Problem("Entity set '_signInManager.UserManager.Users'  is null.");
-            }
-            if (!UserExistsById(userId))
-            {
-                return NotFound("User not found with this id: " + userId);
-            }
-            _usersService.GiveCompanyAdministratorClaim(userId);
-            return Problem("Error occured while removing role");
-        }
-
         // api/Users/GiveRestaurantClaim/54d5/4
         [HttpPost("GiveRestaurantClaim/{userId}/{restaurantId}")]
         [Authorize(Roles = "CompanyAdministrator")]
